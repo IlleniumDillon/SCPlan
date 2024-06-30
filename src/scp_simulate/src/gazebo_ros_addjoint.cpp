@@ -1,0 +1,1 @@
+#include "gazebo_ros_addjoint.hpp"
