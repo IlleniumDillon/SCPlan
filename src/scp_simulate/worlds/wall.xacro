@@ -1,0 +1,5 @@
+<world xmlns:xacro="http://wiki.ros.org/xacro">
+    <xacro:macro name="putWall" params="name x y yaw l w h">
+
+    </xacro:macro>
+</world>

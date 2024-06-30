@@ -47,3 +47,16 @@ macro(GENMESSAGE messages)
         ${messages}
         DEPENDENCIES ${ARGN})
 endmacro()
+
+macro(GENXACRO )
+    find_package(xacro REQUIRED)
+    message(NOTICE "Generating xacro: ${ARGV}")
+    string(REGEX MATCH "(.*)[.]xacro$" unused ${ARGV})
+    set(OUTPUTFILE ${CMAKE_MATCH_1})
+    message(NOTICE "Output file: ${OUTPUTFILE}")
+    # execute_process(COMMAND xacro ${ARGV} -o ${OUTPUTFILE})
+    add_custom_target(XACROFILE ALL
+        COMMAND xacro ${ARGV} -o ${OUTPUTFILE}
+        DEPENDS ${ARGV}
+    )
+endmacro()

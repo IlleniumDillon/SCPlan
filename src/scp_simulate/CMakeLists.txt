@@ -28,6 +28,9 @@ BUILDLIB(gazebo_ros_addjoint ${SCP_SIMULATE_ADDJOINT_SOURCE})
 file (GLOB SCP_SIMULATE_MODELSTATE_SOURCE "src/gazebo_ros_modelstate*.cpp")
 BUILDLIB(gazebo_ros_modelstate ${SCP_SIMULATE_MODELSTATE_SOURCE})
 
+set(WORLDXACROFILE ${CMAKE_SOURCE_DIR}/worlds/world.world.xacro)
+GENXACRO(${WORLDXACROFILE})
+
 INSTALLDIR(
   launch 
   rviz 
