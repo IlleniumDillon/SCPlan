@@ -2737,5 +2737,6 @@
       <allow_auto_disable>1</allow_auto_disable>
     </model>
     <plugin filename="libgazebo_ros_agentaction.so" name="agent_action"/>
+    <plugin filename="libgazebo_ros_modelstate.so" name="model_states"/>
   </world>
 </sdf>

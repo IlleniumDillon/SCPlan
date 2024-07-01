@@ -1,6 +1,6 @@
 # this file is used to support ROS2 in the project
 
-macro(FINDPACKAGES packages)
+macro(FIND_PACKAGES)
     set(REQUIRED_PACKAGES ${ARGV})
     foreach(package ${REQUIRED_PACKAGES})
         message(NOTICE "Finding package: ${package}")
@@ -8,33 +8,49 @@ macro(FINDPACKAGES packages)
     endforeach()
 endmacro()
 
-macro(BUILDEXEC target sources)
-    message(NOTICE "Building executable: ${target}")
-    message(NOTICE "Sources: ${sources}")
-    add_executable(${target} ${sources})
-    ament_target_dependencies(${target} ${REQUIRED_PACKAGES})
-    install(TARGETS ${target}
-        DESTINATION lib/${PROJECT_NAME})
+macro(BUILD_EXEC)
+    set(options)
+    set(oneValueArgs TARGET)
+    set(multiValueArgs SOURCES DEPENDENCIES)
+    cmake_parse_arguments(BUILDEXEC "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    message(NOTICE "Building executable: ${BUILDEXEC_TARGET}")
+    message(NOTICE "Sources: ${BUILDEXEC_SOURCES}")
+    message(NOTICE "Dependencies: ${BUILDEXEC_DEPENDENCIES}")
+
+    add_executable(${BUILDEXEC_TARGET} ${BUILDEXEC_SOURCES})
+    ament_target_dependencies(${BUILDEXEC_TARGET} ${BUILDEXEC_DEPENDENCIES})
+    
+    install(TARGETS ${BUILDEXEC_TARGET} DESTINATION lib/${PROJECT_NAME})
 endmacro()
 
-macro(BUILDLIB target sources)
-    message(NOTICE "Building library: ${target}")
-    message(NOTICE "Sources: ${sources}")
-    add_library(${target} SHARED ${sources})
-    target_include_directories(${target} PUBLIC include)
-    ament_target_dependencies(${target} ${REQUIRED_PACKAGES})
-    ament_export_libraries(${target})
+macro(BUILD_GAZEBO_PLUGIN)
+    set(options)
+    set(oneValueArgs TARGET)
+    set(multiValueArgs SOURCES DEPENDENCIES)
+    cmake_parse_arguments(BUILDLIB "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    message(NOTICE "Building library: ${BUILDLIB_TARGET}")
+    message(NOTICE "Sources: ${BUILDLIB_SOURCES}")
+    message(NOTICE "Dependencies: ${BUILDLIB_DEPENDENCIES}")
+
+    add_library(${BUILDLIB_TARGET} SHARED ${BUILDLIB_SOURCES})
+    target_include_directories(${BUILDLIB_TARGET} PUBLIC include)
+    
+    ament_target_dependencies(${BUILDLIB_TARGET} ${BUILDLIB_DEPENDENCIES})
+
+    ament_export_libraries(${BUILDLIB_TARGET})
     if(ENABLE_PROFILER)
-        target_include_directories(${target} PUBLIC ${ignition-common3_INCLUDE_DIRS})
-        target_link_libraries(${target} ${ignition-common3_LIBRARIES})
+        target_include_directories(${BUILDLIB_TARGET} PUBLIC ${ignition-common3_INCLUDE_DIRS})
+        target_link_libraries(${BUILDLIB_TARGET} ${ignition-common3_LIBRARIES})
     endif()
-    install(TARGETS ${target}
+    install(TARGETS ${BUILDLIB_TARGET}
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib
         RUNTIME DESTINATION bin)
 endmacro()
 
-macro(INSTALLDIR dirs)
+macro(INSTALL_DIR dirs)
     set(INSTALL_DIRS ${ARGV})
     message(NOTICE "Installing directories: ${INSTALL_DIRS}")
     install(DIRECTORY ${INSTALL_DIRS}
@@ -42,14 +58,7 @@ macro(INSTALLDIR dirs)
     install(DIRECTORY include/ DESTINATION include)
 endmacro()
 
-# macro(GENMESSAGE messages DEPENDENCIES )
-#     file(RELATIVE_PATH RELATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR} ${messages})
-#     message(NOTICE "Generating messages: ${RELATIVE_PATH}")
-#     rosidl_generate_interfaces(${PROJECT_NAME}
-#         ${RELATIVE_PATH}
-#         DEPENDENCIES ${REQUIRED_PACKAGES})
-# endmacro()
-macro(GENMESSAGE )
+macro(GEN_MESSAGE )
     set(options)
     set(oneValueArgs)
     set(multiValueArgs MESSAGES DEPENDENCIES)
@@ -72,7 +81,7 @@ macro(GENMESSAGE )
 endmacro()
 
 
-macro(GENXACRO )
+macro(GEN_XACRO )
     find_package(xacro REQUIRED)
     message(NOTICE "Generating xacro: ${ARGV}")
     string(REGEX MATCH "(.*)[.]xacro$" unused ${ARGV})

@@ -77,5 +77,6 @@
 
 
         <plugin name="agent_action" filename="libgazebo_ros_agentaction.so" />
+        <plugin name="model_states" filename="libgazebo_ros_modelstate.so" />
     </world>
 </sdf>

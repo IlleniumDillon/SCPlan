@@ -9,7 +9,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-FINDPACKAGES(
+FIND_PACKAGES(
   ament_cmake
   rclcpp
   geometry_msgs
@@ -22,7 +22,7 @@ FINDPACKAGES(
 )
 
 file(GLOB SCP_MESSAGES_SOURCE "msg/*.msg" "srv/*.srv" "action/*.action")
-GENMESSAGE(MESSAGES ${SCP_MESSAGES_SOURCE} DEPENDENCIES geometry_msgs nav_msgs)
+GEN_MESSAGE(MESSAGES ${SCP_MESSAGES_SOURCE} DEPENDENCIES geometry_msgs nav_msgs)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
