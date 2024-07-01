@@ -5,9 +5,10 @@
         <xacro:include filename="agent.xacro" />
         <xacro:include filename="good.xacro" />
         <xacro:include filename="obstacle.xacro" />
-        <!-- <xacro:include filename="wall.xacro" /> -->
+        <xacro:include filename="wall.xacro" />
         <xacro:include filename="light.xacro" />
         <xacro:include filename="ground_plane.xacro" />
+        <xacro:property name="PI" value="3.1415926535897932384626433832795" />
 
         <gravity>0 0 -9.8</gravity>
         <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
@@ -43,8 +44,38 @@
         </gui>
         <xacro:defineLight />
         <xacro:defineGround />
-        <xacro:putAgent name="agent" x="0" y="10" yaw="1" />
-        <xacro:putGood name="good" x="0" y="5" yaw="1" />
-        <xacro:putObstacle name="obstacle" x="0" y="0" yaw="1" />
+
+        <xacro:putWall name="wall_0" x="0" y="5.5" yaw="0" l="10" w="1" h="1" />
+        <xacro:putWall name="wall_1" x="0" y="-5.5" yaw="0" l="10" w="1" h="1" />
+        <xacro:putWall name="wall_2" x="5.5" y="0" yaw="${PI / 2}" l="12" w="1" h="1" />
+        <xacro:putWall name="wall_3" x="-5.5" y="0" yaw="${PI / 2}" l="12" w="1" h="1" />
+
+        <xacro:putAgent name="agent_0" x="0" y="0" yaw="0" />
+
+        <!-- <xacro:putGood name="good_0" x="0" y="5" yaw="0" /> -->
+        <xacro:putGood name="good_0" x="-0.25" y="-3.75" yaw="0" />
+        <xacro:putGood name="good_1" x="-0.25" y="-4.25" yaw="0" />
+
+        <xacro:putObstacle name="obstacle_0" x="-4.75" y="0.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_1" x="-4.25" y="0.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_2" x="-3.75" y="0.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_3" x="-3.25" y="0.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_4" x="-2.75" y="0.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_5" x="-2.75" y="-0.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_6" x="-2.25" y="-0.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_7" x="-2.25" y="-0.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_8" x="-1.75" y="-0.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_9" x="-1.75" y="-1.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_10" x="-1.75" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_11" x="-1.75" y="-2.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_12" x="-1.75" y="-2.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_13" x="-1.25" y="-2.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_14" x="-0.75" y="-2.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_15" x="-0.25" y="-2.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_16" x="-0.25" y="-3.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_17" x="-0.25" y="-4.75" yaw="0" />
+
+
+        <plugin name="agent_action" filename="libgazebo_ros_agentaction.so" />
     </world>
 </sdf>

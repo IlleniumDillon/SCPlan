@@ -12,21 +12,34 @@ endif()
 #find_package(ament_cmake REQUIRED)
 FINDPACKAGES(
   ament_cmake 
-  rclcpp 
-  sensor_msgs 
+  rclcpp  
+  gazebo_dev
+  gazebo_msgs
+  gazebo_ros
   geometry_msgs
+  nav_msgs
+  sensor_msgs
+  std_msgs
+  std_srvs
+  tf2
+  tf2_geometry_msgs
+  tf2_ros
+  trajectory_msgs
+  scp_message
 )
+
+include_directories(${scp_message_INCLUDE_DIRS})
 
 include_directories(include/${PROJECT_NAME})
 
 file (GLOB SCP_SIMULATE_MANUAL_SOURCE "src/scp_simulate_manual*.cpp")
 BUILDEXEC(scp_simulate_manual ${SCP_SIMULATE_MANUAL_SOURCE})
 
-file (GLOB SCP_SIMULATE_ADDJOINT_SOURCE "src/gazebo_ros_addjoint*.cpp")
-BUILDLIB(gazebo_ros_addjoint ${SCP_SIMULATE_ADDJOINT_SOURCE})
-
 file (GLOB SCP_SIMULATE_MODELSTATE_SOURCE "src/gazebo_ros_modelstate*.cpp")
 BUILDLIB(gazebo_ros_modelstate ${SCP_SIMULATE_MODELSTATE_SOURCE})
+
+file (GLOB SCP_SIMULATE_AGENTACTION_SOURCE "src/gazebo_ros_agentaction*.cpp")
+BUILDLIB(gazebo_ros_agentaction ${SCP_SIMULATE_AGENTACTION_SOURCE})
 
 set(WORLDXACROFILE ${CMAKE_SOURCE_DIR}/worlds/world.world.xacro)
 GENXACRO(${WORLDXACROFILE})

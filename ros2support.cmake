@@ -42,11 +42,35 @@ macro(INSTALLDIR dirs)
     install(DIRECTORY include/ DESTINATION include)
 endmacro()
 
-macro(GENMESSAGE messages)
+# macro(GENMESSAGE messages DEPENDENCIES )
+#     file(RELATIVE_PATH RELATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR} ${messages})
+#     message(NOTICE "Generating messages: ${RELATIVE_PATH}")
+#     rosidl_generate_interfaces(${PROJECT_NAME}
+#         ${RELATIVE_PATH}
+#         DEPENDENCIES ${REQUIRED_PACKAGES})
+# endmacro()
+macro(GENMESSAGE )
+    set(options)
+    set(oneValueArgs)
+    set(multiValueArgs MESSAGES DEPENDENCIES)
+    cmake_parse_arguments(GENMESSAGE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    set(RELATIVEMESSAGE_PATH)
+    foreach(it ${GENMESSAGE_MESSAGES})
+        file(RELATIVE_PATH RELATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR} ${it})
+        list(APPEND RELATIVEMESSAGE_PATH ${RELATIVE_PATH})
+    endforeach()
+    
+    message(NOTICE "Generating messages: ${RELATIVEMESSAGE_PATH}")
     rosidl_generate_interfaces(${PROJECT_NAME}
-        ${messages}
-        DEPENDENCIES ${ARGN})
+        ${RELATIVEMESSAGE_PATH}
+        DEPENDENCIES ${GENMESSAGE_DEPENDENCIES})
+    
+    add_custom_target(MESSAGES ALL
+        DEPENDS ${GENMESSAGE_MESSAGES}
+    )
 endmacro()
+
 
 macro(GENXACRO )
     find_package(xacro REQUIRED)
@@ -60,3 +84,22 @@ macro(GENXACRO )
         DEPENDS ${ARGV}
     )
 endmacro()
+
+function(IMPORT_DIR dir src_files src_dirs)
+    cmake_policy(SET CMP0057 NEW)
+    file(GLOB_RECURSE ${src_files} ${dir}/*.c ${dir}/*.cpp ${dir}/*.cc ${dir}/*.h ${dir}/*.hpp ${dir}/*.hh)
+    set(${src_dirs} "")
+    foreach(src_file ${${src_files}})
+        get_filename_component(src_dir ${src_file} DIRECTORY)
+        if (NOT src_dir IN_LIST ${src_dirs})  # Use IN_LIST operator correctly
+            list(APPEND ${src_dirs} ${src_dir})
+        endif()
+    endforeach()
+    set(${src_dirs} ${${src_dirs}} PARENT_SCOPE)
+    set(${src_files} ${${src_files}} PARENT_SCOPE)
+    message(STATUS "===========================")
+    message(STATUS "import from ${dir}:")
+    message(STATUS "  src_files: ${${src_files}}")
+    message(STATUS "  src_dirs: ${${src_dirs}}")
+    message(STATUS "===========================")
+endfunction()
