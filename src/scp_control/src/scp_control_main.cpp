@@ -3,6 +3,7 @@
 #include "scp_message/msg/agent_action.hpp"
 #include "scp_message/msg/agent_action_list.hpp"
 #include "scp_message/msg/feedback.hpp"
+#include "nav_msgs/msg/path.hpp"
 
 class SCPControlNode : public rclcpp::Node
 {
@@ -10,13 +11,17 @@ public:
     SCPControlNode();
 public:
     rclcpp::Subscription<scp_message::msg::AgentActionList>::SharedPtr agentActionListSubscription;
-    rclcpp::Publisher<scp_message::msg::AgentAction>::SharedPtr agentActionPublisher;
     rclcpp::Subscription<scp_message::msg::Feedback>::SharedPtr agentFeedbackSubscription;
+    rclcpp::Publisher<scp_message::msg::AgentAction>::SharedPtr agentActionPublisher;
+    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr trackPublisher;
     rclcpp::TimerBase::SharedPtr timer;
 
     scp_message::msg::AgentActionList agentActionList;
     scp_message::msg::AgentAction agentDefaultAction;
     scp_message::msg::Feedback agentFeedback;
+
+    nav_msgs::msg::Path track;
+
     int index = -1;
 private:
     void agentActionCallback(const scp_message::msg::AgentActionList::SharedPtr msg);
@@ -44,7 +49,8 @@ SCPControlNode::SCPControlNode()
     agentFeedbackSubscription = this->create_subscription<scp_message::msg::Feedback>(
         "agent_feedback", 1, std::bind(&SCPControlNode::agentFeedbackCallback, this, std::placeholders::_1));
     agentActionPublisher = this->create_publisher<scp_message::msg::AgentAction>("agent_action", 1);
-    timer = this->create_wall_timer(std::chrono::milliseconds(50), std::bind(&SCPControlNode::timerCallback, this));
+    trackPublisher = this->create_publisher<nav_msgs::msg::Path>("track", 1);
+    timer = this->create_wall_timer(std::chrono::milliseconds(500), std::bind(&SCPControlNode::timerCallback, this));
 }
 
 void SCPControlNode::agentActionCallback(const scp_message::msg::AgentActionList::SharedPtr msg)
@@ -57,22 +63,30 @@ void SCPControlNode::agentActionCallback(const scp_message::msg::AgentActionList
 void SCPControlNode::agentFeedbackCallback(const scp_message::msg::Feedback::SharedPtr msg)
 {
     agentFeedback = *msg;
+    track.header.frame_id = "map";
+    track.header.stamp = this->now();
+    geometry_msgs::msg::PoseStamped pose;
+    pose.header.frame_id = "map";
+    pose.header.stamp = this->now();
+    pose.pose = msg->pose;
+    track.poses.push_back(pose);
+    trackPublisher->publish(track);
 }
 
 void SCPControlNode::timerCallback()
 {
-    // if (index >= 0 && index < agentActionList.actions.size())
-    // {
-    //     agentActionPublisher->publish(agentActionList.actions[index]);
-    //     index++;
-    // }
-    // else
-    // {
-    //     index = -1;
-    //     agentActionPublisher->publish(agentDefaultAction);
-    // }
+    if (index >= 0 && index < agentActionList.actions.size())
+    {
+        agentActionPublisher->publish(agentActionList.actions[index]);
+        index++;
+    }
+    else
+    {
+        index = -1;
+        agentActionPublisher->publish(agentDefaultAction);
+    }
     /// @todo Implement the SCP control algorithm
-    scp_message::msg::AgentAction controlOutput = agentDefaultAction;
+    // scp_message::msg::AgentAction controlOutput = agentDefaultAction;
 
-    agentActionPublisher->publish(controlOutput);
+    // agentActionPublisher->publish(controlOutput);
 }
