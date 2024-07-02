@@ -11,6 +11,7 @@
 #include "scp_message/msg/model_state.hpp"
 #include "scp_message/msg/model_state_list.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
+#include "nav_msgs/msg/path.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 
 #include "json/json.h"
@@ -36,11 +37,13 @@ public:
     scp_message::msg::ModelStateList modelStateList;
     scp_message::msg::AgentActionList agentActionList;
     nav_msgs::msg::OccupancyGrid occupancyGrid;
+    nav_msgs::msg::Path path;
 
     rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr agentTargetPoseSubscription;
     rclcpp::Subscription<scp_message::msg::ModelStateList>::SharedPtr modelStateListSubscription;
     rclcpp::Publisher<scp_message::msg::AgentActionList>::SharedPtr agentActionListPublisher;
     rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr occupancyGridPublisher;
+    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pathPublisher;
 
     rclcpp::TimerBase::SharedPtr timer;
 

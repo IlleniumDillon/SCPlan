@@ -62,6 +62,8 @@ SCPPlanNode::SCPPlanNode()
     RCLCPP_INFO(get_logger(), "Publishing occupancy_grid");
     agentTargetPoseSubscription = create_subscription<geometry_msgs::msg::PoseStamped>(
         "goal_pose", 1, std::bind(&SCPPlanNode::agentTargetPoseCallback, this, std::placeholders::_1));
+    pathPublisher = create_publisher<nav_msgs::msg::Path>("path", 1);
+    RCLCPP_INFO(get_logger(), "Publishing path");
 
     timer = create_wall_timer(std::chrono::milliseconds(1000), std::bind(&SCPPlanNode::timerCallback, this));
 }
@@ -153,8 +155,11 @@ void SCPPlanNode::agentTargetPoseCallback(const geometry_msgs::msg::PoseStamped:
 
     if (planResult.success)
     {
+        path.header.stamp = now();
+        path.header.frame_id = "map";
+        path.poses.clear();
         agentActionList.actions.clear();
-        for (int i = 0; i < planResult.actions.size(); i++)
+        for (int i = 1; i < planResult.actions.size(); i++)
         {
             scp_message::msg::AgentAction agentAction;
             agentAction.agent_name = "agent_0";
@@ -182,9 +187,16 @@ void SCPPlanNode::agentTargetPoseCallback(const geometry_msgs::msg::PoseStamped:
             agentAction.going_to = goingTo;
 
             agentActionList.actions.push_back(agentAction);
+
+            geometry_msgs::msg::PoseStamped pose;
+            pose.header.stamp = now();
+            pose.header.frame_id = "map";
+            pose.pose = goingTo;
+            path.poses.push_back(pose);
         }
-        drawDynamic(elementMap, planResult);
+        // drawDynamic(elementMap, planResult);
         agentActionListPublisher->publish(agentActionList);
+        pathPublisher->publish(path);
     }
 }
 
