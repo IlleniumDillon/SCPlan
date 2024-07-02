@@ -120,10 +120,10 @@
         <kinematic>0</kinematic>
       </link>
     </model>
-    <model name="wall_0">
+    <model name="wall10_0">
+      <pose>0 5.5 0.5 0 0 0</pose>
+      <scale>1 1 1</scale>
       <link name="link_0">
-        <pose>0 5.5 0.5 0 0 0</pose>
-        <scale>1 1 1</scale>
         <inertial>
           <!-- <mass value="${m}" />
                 <inertia ixx="${m*(h*h + l*l)/12}" ixy = "0" ixz = "0"
@@ -228,10 +228,10 @@
       <static>1</static>
       <allow_auto_disable>1</allow_auto_disable>
     </model>
-    <model name="wall_1">
+    <model name="wall10_1">
+      <pose>0 -5.5 0.5 0 0 0</pose>
+      <scale>1 1 1</scale>
       <link name="link_0">
-        <pose>0 -5.5 0.5 0 0 0</pose>
-        <scale>1 1 1</scale>
         <inertial>
           <!-- <mass value="${m}" />
                 <inertia ixx="${m*(h*h + l*l)/12}" ixy = "0" ixz = "0"
@@ -336,10 +336,10 @@
       <static>1</static>
       <allow_auto_disable>1</allow_auto_disable>
     </model>
-    <model name="wall_2">
+    <model name="wall12_2">
+      <pose>5.5 0 0.5 0 0 1.5707963267948966</pose>
+      <scale>1 1 1</scale>
       <link name="link_0">
-        <pose>5.5 0 0.5 0 0 1.5707963267948966</pose>
-        <scale>1 1 1</scale>
         <inertial>
           <!-- <mass value="${m}" />
                 <inertia ixx="${m*(h*h + l*l)/12}" ixy = "0" ixz = "0"
@@ -444,10 +444,10 @@
       <static>1</static>
       <allow_auto_disable>1</allow_auto_disable>
     </model>
-    <model name="wall_3">
+    <model name="wall12_3">
+      <pose>-5.5 0 0.5 0 0 1.5707963267948966</pose>
+      <scale>1 1 1</scale>
       <link name="link_0">
-        <pose>-5.5 0 0.5 0 0 1.5707963267948966</pose>
-        <scale>1 1 1</scale>
         <inertial>
           <!-- <mass value="${m}" />
                 <inertia ixx="${m*(h*h + l*l)/12}" ixy = "0" ixz = "0"
@@ -559,12 +559,14 @@
         <inertial>
           <mass>2</mass>
           <inertia>
-            <ixx>0.04166667</ixx>
+            <!-- <ixx>0.04166667</ixx> -->
+            <ixx>0</ixx>
             <ixy>0</ixy>
             <ixz>0</ixz>
             <iyy>0.04166667</iyy>
             <iyz>0</iyz>
-            <izz>0.03</izz>
+            <!-- <izz>0.03</izz> -->
+            <izz>0</izz>
           </inertia>
           <pose>0 0 0 0 -0 0</pose>
         </inertial>
@@ -603,7 +605,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>0.4 0.3 0.3</size>
+              <size>0.30000000000000004 0.19999999999999998 0.3</size>
             </box>
           </geometry>
           <surface>

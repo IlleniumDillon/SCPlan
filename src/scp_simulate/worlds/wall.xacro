@@ -19,9 +19,9 @@
     </xacro:macro>
     <xacro:macro name="putWall" params="name x y yaw l w h">
         <model name="${name}">
+            <pose>${x} ${y} ${h / 2} 0 0 ${yaw}</pose>
+            <scale>1 1 1</scale>
             <link name='link_0'>
-                <pose>${x} ${y} ${h / 2} 0 0 ${yaw}</pose>
-                <scale>1 1 1</scale>
                 <xacro:property name="densities" value="10" />
                 <xacro:Box_inertial_matrix m="${densities * l * w * h}" l="${l}" w="${w}" h="${h}" />
                 <pose>0 -0 0 0 -0 0</pose>

@@ -7,12 +7,14 @@
                 <inertial>
                     <mass>2</mass>
                     <inertia>
-                        <ixx>0.04166667</ixx>
+                        <!-- <ixx>0.04166667</ixx> -->
+                        <ixx>0</ixx>
                         <ixy>0</ixy>
                         <ixz>0</ixz>
                         <iyy>0.04166667</iyy>
                         <iyz>0</iyz>
-                        <izz>0.03</izz>
+                        <!-- <izz>0.03</izz> -->
+                        <izz>0</izz>
                     </inertia>
                     <pose>0 0 0 0 -0 0</pose>
                 </inertial>
@@ -51,7 +53,7 @@
                     <pose>0 0 0 0 -0 0</pose>
                     <geometry>
                         <box>
-                            <size>0.4 0.3 0.3</size>
+                            <size>${0.4 - 0.1} ${0.3 - 0.1} 0.3</size>
                         </box>
                     </geometry>
                     <surface>

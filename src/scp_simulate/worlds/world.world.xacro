@@ -45,10 +45,10 @@
         <xacro:defineLight />
         <xacro:defineGround />
 
-        <xacro:putWall name="wall_0" x="0" y="5.5" yaw="0" l="10" w="1" h="1" />
-        <xacro:putWall name="wall_1" x="0" y="-5.5" yaw="0" l="10" w="1" h="1" />
-        <xacro:putWall name="wall_2" x="5.5" y="0" yaw="${PI / 2}" l="12" w="1" h="1" />
-        <xacro:putWall name="wall_3" x="-5.5" y="0" yaw="${PI / 2}" l="12" w="1" h="1" />
+        <xacro:putWall name="wall10_0" x="0" y="5.5" yaw="0" l="10" w="1" h="1" />
+        <xacro:putWall name="wall10_1" x="0" y="-5.5" yaw="0" l="10" w="1" h="1" />
+        <xacro:putWall name="wall12_2" x="5.5" y="0" yaw="${PI / 2}" l="12" w="1" h="1" />
+        <xacro:putWall name="wall12_3" x="-5.5" y="0" yaw="${PI / 2}" l="12" w="1" h="1" />
 
         <xacro:putAgent name="agent_0" x="0" y="0" yaw="0" />
 

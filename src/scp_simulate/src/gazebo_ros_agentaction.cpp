@@ -108,7 +108,7 @@ void GazeboRosAgentActionPrivate::OnUpdate(const gazebo::common::UpdateInfo &inf
         v * cos(currentYaw), v * sin(currentYaw), 0
     );
     pagent->SetLinearVel(V);
-    pagent->SetAngularVel(ignition::math::Vector3d(0, 0, w));  
+    pagent->SetAngularVel(ignition::math::Vector3d(0, 0, w));
 #ifdef IGN_PROFILER_ENABLE
   IGN_PROFILE_END();
 #endif

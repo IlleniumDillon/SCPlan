@@ -1,4 +1,6 @@
 string agent_name
+geometry_msgs/Pose came_from
+geometry_msgs/Pose going_to
 float32 v
 float32 w
 float32 dt
