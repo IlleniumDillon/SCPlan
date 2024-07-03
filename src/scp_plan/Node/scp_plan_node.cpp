@@ -186,6 +186,8 @@ void SCPPlanNode::agentTargetPoseCallback(const geometry_msgs::msg::PoseStamped:
             goingTo.orientation = tf2::toMsg(q1);
             agentAction.going_to = goingTo;
 
+            agentAction.final_flag = planResult.actions[i]._final;
+
             agentActionList.actions.push_back(agentAction);
 
             geometry_msgs::msg::PoseStamped pose;

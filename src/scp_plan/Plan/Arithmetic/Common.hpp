@@ -52,9 +52,10 @@ public:
     double theta1;
     double V, W;
     bool lift;
+    bool _final;
 public:
-    Action(CoordD from, double theta0, CoordD to, double theta1, double V, double W, bool lift)
-        : from(from), theta0(theta0), to(to), theta1(theta1), V(V), W(W), lift(lift) {}
+    Action(CoordD from, double theta0, CoordD to, double theta1, double V, double W, bool lift, bool _final = false)
+        : from(from), theta0(theta0), to(to), theta1(theta1), V(V), W(W), lift(lift),_final(_final) {}
     Action(){}
 };
 

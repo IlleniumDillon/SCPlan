@@ -36,6 +36,8 @@ public:
     gazebo::common::Time last_update_time_;
     double update_period_;
     float v=0, w=0;
+    ignition::math::Vector3d position;
+    ignition::math::Quaterniond orientation;
     gazebo::physics::ModelPtr pagent = nullptr;
     gazebo::physics::ModelPtr pobject = nullptr;
 };
@@ -87,6 +89,13 @@ void GazeboRosAgentActionPrivate::actionCallback(const scp_message::msg::AgentAc
 
     v = msg->v;
     w = msg->w;
+    position = ignition::math::Vector3d(
+        msg->going_to.position.x, msg->going_to.position.y, msg->going_to.position.z
+    );
+    orientation = ignition::math::Quaterniond(
+        msg->going_to.orientation.w, msg->going_to.orientation.x,
+        msg->going_to.orientation.y, msg->going_to.orientation.z
+    );
     
     /// XXX: CHECK IF THIS IS THE RIGHT WAY TO DO THIS
     if (msg->action != 0 && pobject != nullptr)
@@ -137,48 +146,62 @@ void GazeboRosAgentActionPrivate::OnUpdate(const gazebo::common::UpdateInfo &inf
     // );
     // pagent->SetLinearVel(V);
     // pagent->SetAngularVel(ignition::math::Vector3d(0, 0, w));
-    double dt = seconds_since_last_update;
-    ignition::math::Quaterniond q = pagent->WorldPose().Rot();
-    double theta0 = q.Yaw();
-    ignition::math::Vector3d position0 = pagent->WorldPose().Pos();
-    ignition::math::Vector3d position1;
-    double dtheta = w * dt;
-    double theta1 = theta0 + dtheta;
-    if (abs(dtheta) < 1e-6)
-    {
-        double dx = v * dt * std::cos(theta0);
-        double dy = v * dt * std::sin(theta0);
 
-        position1.X() = position0.X() + dx;
-        position1.Y() = position0.Y() + dy;
-    }
-    else
-    {
-        double R = v / w;
-        double Choord = std::sqrt(
-            2 * R * R * (1 - std::cos(dtheta))
-        );
-        double dx = Choord * std::cos(theta0 + dtheta / 2);
-        double dy = Choord * std::sin(theta0 + dtheta / 2);
+    // double dt = seconds_since_last_update;
+    // ignition::math::Quaterniond q = pagent->WorldPose().Rot();
+    // double theta0 = q.Yaw();
+    // ignition::math::Vector3d position0 = pagent->WorldPose().Pos();
+    // ignition::math::Vector3d position1;
+    // double dtheta = w * dt;
+    // double theta1 = theta0 + dtheta;
+    // if (abs(dtheta) < 1e-6)
+    // {
+    //     double dx = v * dt * std::cos(theta0);
+    //     double dy = v * dt * std::sin(theta0);
 
-        position1.X() = position0.X() + dx;
-        position1.Y() = position0.Y() + dy;
-    }
+    //     position1.X() = position0.X() + dx;
+    //     position1.Y() = position0.Y() + dy;
+    // }
+    // else
+    // {
+    //     double R = v / w;
+    //     double Choord = std::sqrt(
+    //         2 * R * R * (1 - std::cos(dtheta))
+    //     );
+    //     double dx = Choord * std::cos(theta0 + dtheta / 2);
+    //     double dy = Choord * std::sin(theta0 + dtheta / 2);
+
+    //     position1.X() = position0.X() + dx;
+    //     position1.Y() = position0.Y() + dy;
+    // }
+    // pagent->SetWorldPose(
+    //     ignition::math::Pose3d(
+    //         position1, ignition::math::Quaterniond(0, 0, theta1)
+    //     )
+    // );
+    // scp_message::msg::Feedback feedback;
+    // feedback.pose.position.x = position0.X();
+    // feedback.pose.position.y = position0.Y();
+    // feedback.pose.position.z = position0.Z();
+    // feedback.pose.orientation.x = q.X();
+    // feedback.pose.orientation.y = q.Y();
+    // feedback.pose.orientation.z = q.Z();
+    // feedback.pose.orientation.w = q.W();
+    // pub_->publish(feedback);
+
     pagent->SetWorldPose(
-        ignition::math::Pose3d(
-            position1, ignition::math::Quaterniond(0, 0, theta1)
-        )
+        ignition::math::Pose3d(position, orientation)
     );
-
     scp_message::msg::Feedback feedback;
-    feedback.pose.position.x = position0.X();
-    feedback.pose.position.y = position0.Y();
-    feedback.pose.position.z = position0.Z();
-    feedback.pose.orientation.x = q.X();
-    feedback.pose.orientation.y = q.Y();
-    feedback.pose.orientation.z = q.Z();
-    feedback.pose.orientation.w = q.W();
+    feedback.pose.position.x = position.X();
+    feedback.pose.position.y = position.Y();
+    feedback.pose.position.z = position.Z();
+    feedback.pose.orientation.x = orientation.X();
+    feedback.pose.orientation.y = orientation.Y();
+    feedback.pose.orientation.z = orientation.Z();
+    feedback.pose.orientation.w = orientation.W();
     pub_->publish(feedback);
+    
 #ifdef IGN_PROFILER_ENABLE
   IGN_PROFILE_END();
 #endif

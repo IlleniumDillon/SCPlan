@@ -61,6 +61,7 @@ INSTALL_DIR(
   rviz 
   worlds
   models
+  materials
 )
 
 if(BUILD_TESTING)

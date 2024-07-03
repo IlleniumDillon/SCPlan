@@ -304,10 +304,10 @@ std::vector<Action> HybridAStar::finalPath(CoordD &position0, double &theta0, Co
     {
         dtheta -= step;
         t1 = t0 + W * task.dt;
-        actions.push_back(Action(p0, t0, p0, t1, 0, W, false));
+        actions.push_back(Action(p0, t0, p0, t1, 0, W, false, true));
         t0 = t1;
     }
-    actions.push_back(Action(p0, t0, p0, angle, 0, dtheta * direction / task.dt, false));
+    actions.push_back(Action(p0, t0, p0, angle, 0, dtheta * direction / task.dt, false, true));
     t0 = angle;
     p1 = p0;
     /// step 2: move to the goal
@@ -317,11 +317,11 @@ std::vector<Action> HybridAStar::finalPath(CoordD &position0, double &theta0, Co
     {
         p1.x = p0.x + step * std::cos(t0);
         p1.y = p0.y + step * std::sin(t0);
-        actions.push_back(Action(p0, t0, p1, t0, task.V, 0, false));
+        actions.push_back(Action(p0, t0, p1, t0, task.V, 0, false, true));
         p0 = p1;
         distance -= step;
     }
-    actions.push_back(Action(p0, t0, position1, t0, distance / task.dt, 0, false));
+    actions.push_back(Action(p0, t0, position1, t0, distance / task.dt, 0, false, true));
     /// step 3: turn to the goal's direction
     dtheta = theta1 - t0;
     if (dtheta >= M_PI)
@@ -340,9 +340,9 @@ std::vector<Action> HybridAStar::finalPath(CoordD &position0, double &theta0, Co
     {
         dtheta -= step;
         t1 = t0 + W * task.dt;
-        actions.push_back(Action(p0, t0, p0, t1, 0, W, false));
+        actions.push_back(Action(p0, t0, p0, t1, 0, W, false, true));
         t0 = t1;
     }
-    actions.push_back(Action(p0, t0, p0, theta1, 0, dtheta * direction / task.dt, false));
+    actions.push_back(Action(p0, t0, p0, theta1, 0, dtheta * direction / task.dt, false, true));
     return actions;
 }

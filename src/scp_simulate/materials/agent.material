@@ -1,0 +1,13 @@
+material SCP/agent
+{
+	technique
+	{
+		pass
+		{ 
+			texture_unit
+			{
+				texture agent.png
+			}
+		}
+	}
+}
