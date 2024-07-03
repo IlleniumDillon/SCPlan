@@ -226,21 +226,25 @@ void SCPPlanNode::modelStateListCallback(const scp_message::msg::ModelStateList:
             std::string type = modelStateList.modelstates[i].name.substr(0, modelStateList.modelstates[i].name.find("_"));
             if (type == "good")
             {
+                element.name = modelStateList.modelstates[i].name;
                 element.originShape = goodTemplate.originShape;
                 element.originAnchors = goodTemplate.originAnchors;
             }
             else if (type == "obstacle")
             {
+                element.name = "";
                 element.originShape = obstacleTemplate.originShape;
                 element.originAnchors = obstacleTemplate.originAnchors;
             }
             else if (type == "wall10")
             {
+                element.name = "";
                 element.originShape = wall10Template.originShape;
                 element.originAnchors = wall10Template.originAnchors;
             }
             else if (type == "wall12")
             {
+                element.name = "";
                 element.originShape = wall12Template.originShape;
                 element.originAnchors = wall12Template.originAnchors;
             }
@@ -275,14 +279,18 @@ void SCPPlanNode::timerCallback()
     occupancyGrid.info.origin.orientation.w = 1;
     occupancyGrid.data.clear();
     occupancyGrid.data.resize(occupancyGrid.info.height * occupancyGrid.info.width, 0);
+
+    std::vector<Element> elements = elementsShadow;
+    elements.push_back(agentShadow);
+
     std::vector<CoordD> edge;
-    for (int i = 0; i < elementsShadow.size(); i++)
+    for (int i = 0; i < elements.size(); i++)
     {
-        for (int j = 0; j < elementsShadow[i].shape.vertices.size(); j++)
+        for (int j = 0; j < elements[i].shape.vertices.size(); j++)
         {
             Line line(
-                elementsShadow[i].shape.vertices[j],
-                elementsShadow[i].shape.vertices[(j + 1) % elementsShadow[i].shape.vertices.size()]);
+                elements[i].shape.vertices[j],
+                elements[i].shape.vertices[(j + 1) % elements[i].shape.vertices.size()]);
             std::vector<Coord<double>> discretized = line.discretize(distanceMapResolution);
             edge.insert(edge.end(), discretized.begin(), discretized.end());
         }

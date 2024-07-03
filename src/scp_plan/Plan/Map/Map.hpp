@@ -16,6 +16,8 @@
 class Element
 {
 public:
+    std::string name;
+
     Polygon originShape;
     std::vector<CoordD> originAnchors;
 

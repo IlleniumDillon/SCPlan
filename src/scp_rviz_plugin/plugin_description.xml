@@ -1,0 +1,6 @@
+<library path="move_to">
+  <class name="MOVETO" type="scp_rviz_moveto::MoveTo" base_class_type="rviz_common::Tool">
+    <description>Tutorial to display a point</description>
+    <message_type></message_type>
+  </class>
+</library>
