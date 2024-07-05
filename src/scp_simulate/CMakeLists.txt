@@ -28,6 +28,18 @@ FIND_PACKAGES(
   scp_message
 )
 
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/jsoncpp/include
+)
+set(
+    JSONCPP_SRC
+    ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/src/lib_json/json_reader.cpp
+    ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/src/lib_json/json_value.cpp
+    ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/src/lib_json/json_writer.cpp
+    ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/src/lib_json/json_tool.h
+    ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/src/lib_json/json_valueiterator.inl
+)
+
 include_directories(${scp_message_INCLUDE_DIRS})
 
 include_directories(include/${PROJECT_NAME})

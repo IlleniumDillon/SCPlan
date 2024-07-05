@@ -19,6 +19,7 @@
 
 #include "Map.hpp"
 #include "HybridAStar.hpp"
+#include "CarryPlanner.hpp"
 #include "Visualize.hpp"
 
 class SCPPlanNode : public rclcpp::Node
@@ -59,6 +60,7 @@ private:
     bool loadModelTemplate(std::string modelName, Element& element);
 
     void agentTargetPoseCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg);
+    void goodTargetPoseCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg);
     void modelStateListCallback(const scp_message::msg::ModelStateList::SharedPtr msg);
     void timerCallback();
 };

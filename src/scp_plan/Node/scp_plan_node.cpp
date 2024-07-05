@@ -60,8 +60,10 @@ SCPPlanNode::SCPPlanNode()
     RCLCPP_INFO(get_logger(), "Publishing agent_actions");
     occupancyGridPublisher = create_publisher<nav_msgs::msg::OccupancyGrid>("occupancy_grid", 1);
     RCLCPP_INFO(get_logger(), "Publishing occupancy_grid");
+    // agentTargetPoseSubscription = create_subscription<geometry_msgs::msg::PoseStamped>(
+    //     "goal_pose", 1, std::bind(&SCPPlanNode::agentTargetPoseCallback, this, std::placeholders::_1));
     agentTargetPoseSubscription = create_subscription<geometry_msgs::msg::PoseStamped>(
-        "goal_pose", 1, std::bind(&SCPPlanNode::agentTargetPoseCallback, this, std::placeholders::_1));
+        "goal_pose", 1, std::bind(&SCPPlanNode::goodTargetPoseCallback, this, std::placeholders::_1));
     pathPublisher = create_publisher<nav_msgs::msg::Path>("path", 1);
     RCLCPP_INFO(get_logger(), "Publishing path");
 
@@ -187,6 +189,115 @@ void SCPPlanNode::agentTargetPoseCallback(const geometry_msgs::msg::PoseStamped:
             agentAction.going_to = goingTo;
 
             agentAction.final_flag = planResult.actions[i]._final;
+
+            agentActionList.actions.push_back(agentAction);
+
+            geometry_msgs::msg::PoseStamped pose;
+            pose.header.stamp = now();
+            pose.header.frame_id = "map";
+            pose.pose = goingTo;
+            path.poses.push_back(pose);
+        }
+        // drawDynamic(elementMap, planResult);
+        agentActionListPublisher->publish(agentActionList);
+        pathPublisher->publish(path);
+    }
+}
+
+void SCPPlanNode::goodTargetPoseCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
+{
+    CoordD targetPosition(
+        msg->pose.position.x,
+        msg->pose.position.y);
+    double targetYaw = tf2::getYaw(msg->pose.orientation);
+    RCLCPP_INFO(get_logger(), "Target position: %f, %f, yaw: %f", targetPosition.x, targetPosition.y, targetYaw);
+
+    elementMap.agent = agentShadow;
+    elementMap.elements = elementsShadow;
+
+    TaskCarry taskCarry;
+    taskCarry.agentStart = elementMap.agent.panning;
+    taskCarry.agentTheta0 = elementMap.agent.rotation;
+    taskCarry.agentGoal = elementMap.agent.panning;
+    taskCarry.agentTheta1 = elementMap.agent.rotation;
+    for (auto &e : elementMap.elements)
+    {
+        if (e.name == "good_0")
+        {
+            taskCarry.elementId = e.id;
+            break;
+        }
+    }
+    taskCarry.elementTargetPosition = targetPosition;
+    taskCarry.elementTargetTheta = targetYaw;
+    taskCarry.V = agentV;
+    taskCarry.W = agentW;
+    taskCarry.dt = agentDt;
+    RCLCPP_INFO(get_logger(), "Task carry: %d, %f, %f, %f, %f, %f, %f, %f, %f",
+                taskCarry.elementId,
+                taskCarry.agentStart.x, taskCarry.agentStart.y, taskCarry.agentTheta0,
+                taskCarry.elementTargetPosition.x, taskCarry.elementTargetPosition.y, taskCarry.elementTargetTheta,
+                taskCarry.agentGoal.x, taskCarry.agentGoal.y);
+
+    CarryPlanner carryPlanner(elementMap, solveResolution, distanceMapResolution);
+    RCLCPP_INFO(get_logger(), "Carry planner created");
+    PlanResult planResult = carryPlanner.plan(taskCarry);
+
+    RCLCPP_INFO(get_logger(), "Plan result: %s", planResult.success ? "success" : "failed");
+
+    if (planResult.success)
+    {
+        path.header.stamp = now();
+        path.header.frame_id = "map";
+        path.poses.clear();
+        agentActionList.actions.clear();
+        bool lastLiftFlag = false;
+        for (int i = 1; i < planResult.actions.size(); i++)
+        {
+            scp_message::msg::AgentAction agentAction;
+            agentAction.object_name = "good_0";
+            agentAction.agent_name = "agent_0";
+            agentAction.action = 0;
+            agentAction.v = planResult.actions[i].V;
+            agentAction.w = planResult.actions[i].W;
+            agentAction.dt = agentDt;
+
+            geometry_msgs::msg::Pose cameFrom;
+            cameFrom.position.x = planResult.actions[i].from.x;
+            cameFrom.position.y = planResult.actions[i].from.y;
+            cameFrom.position.z = 0;
+            tf2::Quaternion q0;
+            q0.setRPY(0.0, 0.0, planResult.actions[i].theta0);
+            cameFrom.orientation = tf2::toMsg(q0);
+            agentAction.came_from = cameFrom;
+
+            geometry_msgs::msg::Pose goingTo;
+            goingTo.position.x = planResult.actions[i].to.x;
+            goingTo.position.y = planResult.actions[i].to.y;
+            goingTo.position.z = 0;
+            tf2::Quaternion q1;
+            q1.setRPY(0.0, 0.0, planResult.actions[i].theta1);
+            goingTo.orientation = tf2::toMsg(q1);
+            agentAction.going_to = goingTo;
+
+            agentAction.final_flag = planResult.actions[i]._final;
+
+            if (planResult.actions[i].lift == true && lastLiftFlag == false)
+            {
+                agentAction.action = 1;
+                lastLiftFlag = true;
+                RCLCPP_INFO(get_logger(), "Lift");
+            }
+            else if (planResult.actions[i].lift == false && lastLiftFlag == true)
+            {
+                agentAction.action = -1;
+                lastLiftFlag = false;
+                RCLCPP_INFO(get_logger(), "DROP");
+            }
+            else
+            {
+                agentAction.action = 0;
+            }
 
             agentActionList.actions.push_back(agentAction);
 

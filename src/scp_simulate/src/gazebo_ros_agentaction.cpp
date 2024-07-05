@@ -98,8 +98,10 @@ void GazeboRosAgentActionPrivate::actionCallback(const scp_message::msg::AgentAc
     );
     
     /// XXX: CHECK IF THIS IS THE RIGHT WAY TO DO THIS
+    // RCLCPP_INFO(ros_node_->get_logger(), "Action: %d", msg->action);
     if (msg->action != 0 && pobject != nullptr)
     {
+        // RCLCPP_INFO(ros_node_->get_logger(), "Action: %d", msg->action);
         gazebo::physics::LinkPtr linkAgent = pagent->GetLink("link_0");
         gazebo::physics::LinkPtr linkObject = pobject->GetLink("link_0");
         if (linkAgent == nullptr || linkObject == nullptr)

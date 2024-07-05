@@ -104,7 +104,7 @@ void HybridAStar::generateKinematics()
     }
 }
 
-PlanResult HybridAStar::plan(TaskLowLevel &task)
+PlanResult HybridAStar::plan(TaskLowLevel &task, bool lift)
 {
     auto timeStart = std::chrono::high_resolution_clock::now();
 
@@ -122,8 +122,12 @@ PlanResult HybridAStar::plan(TaskLowLevel &task)
         result.success = false;
         return result;
     }
+    // start->position = task.start;
+    // start->theta = task.theta0;
+    start = new Grid(task.start, CoordI(-1,-1));
     start->theta = task.theta0;
-    Grid *goal = new Grid(task.goal, CoordI());
+
+    Grid *goal = new Grid(task.goal, CoordI(-1,-1));
     goal->theta = task.theta1;
 
     start->g = 0;
@@ -144,6 +148,11 @@ PlanResult HybridAStar::plan(TaskLowLevel &task)
     while(!openSet.empty())
     {
         result.iterations++;
+        if (result.iterations > 200000)
+        {
+            result.success = false;
+            break;
+        }
 
         current = openSet.begin()->second;
         
@@ -153,17 +162,20 @@ PlanResult HybridAStar::plan(TaskLowLevel &task)
             double lastTheta = current->theta;
             result.success = true;
             result.gCost = current->g;
-            while (current != nullptr)
+            while (current->parent != nullptr)
             {
+                current->action.lift = lift;
                 result.actions.push_back(current->action);
                 current = current->parent;
             }
+            result.actions.push_back(Action(task.start, task.theta0, task.start, task.theta0, 0, 0, lift));
             std::reverse(result.actions.begin(), result.actions.end());
             auto finalAction = finalPath(
                 result.actions.back().to,
                 result.actions.back().theta1,
                 goal->position,
-                goal->theta
+                goal->theta,
+                lift
             );
             result.actions.insert(
                 result.actions.end(),
@@ -209,9 +221,12 @@ PlanResult HybridAStar::plan(TaskLowLevel &task)
     }
 
     delete goal;
+    delete start;
 
     auto timeEnd = std::chrono::high_resolution_clock::now();
     result.timeCost = (double)std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart).count() / 1000000.0;
+
+    resetMap();
 
     return result;
 }
@@ -277,7 +292,7 @@ bool HybridAStar::checkCollision(Element &element)
     return false;
 }
 
-std::vector<Action> HybridAStar::finalPath(CoordD &position0, double &theta0, CoordD &position1, double &theta1)
+std::vector<Action> HybridAStar::finalPath(CoordD &position0, double &theta0, CoordD &position1, double &theta1, bool lift)
 {
     std::vector<Action> actions;
     CoordD p0 = position0;
@@ -304,10 +319,10 @@ std::vector<Action> HybridAStar::finalPath(CoordD &position0, double &theta0, Co
     {
         dtheta -= step;
         t1 = t0 + W * task.dt;
-        actions.push_back(Action(p0, t0, p0, t1, 0, W, false, true));
+        actions.push_back(Action(p0, t0, p0, t1, 0, W, lift, true));
         t0 = t1;
     }
-    actions.push_back(Action(p0, t0, p0, angle, 0, dtheta * direction / task.dt, false, true));
+    actions.push_back(Action(p0, t0, p0, angle, 0, dtheta * direction / task.dt, lift, true));
     t0 = angle;
     p1 = p0;
     /// step 2: move to the goal
@@ -317,11 +332,11 @@ std::vector<Action> HybridAStar::finalPath(CoordD &position0, double &theta0, Co
     {
         p1.x = p0.x + step * std::cos(t0);
         p1.y = p0.y + step * std::sin(t0);
-        actions.push_back(Action(p0, t0, p1, t0, task.V, 0, false, true));
+        actions.push_back(Action(p0, t0, p1, t0, task.V, 0, lift, true));
         p0 = p1;
         distance -= step;
     }
-    actions.push_back(Action(p0, t0, position1, t0, distance / task.dt, 0, false, true));
+    actions.push_back(Action(p0, t0, position1, t0, distance / task.dt, 0, lift, true));
     /// step 3: turn to the goal's direction
     dtheta = theta1 - t0;
     if (dtheta >= M_PI)
@@ -340,9 +355,9 @@ std::vector<Action> HybridAStar::finalPath(CoordD &position0, double &theta0, Co
     {
         dtheta -= step;
         t1 = t0 + W * task.dt;
-        actions.push_back(Action(p0, t0, p0, t1, 0, W, false, true));
+        actions.push_back(Action(p0, t0, p0, t1, 0, W, lift, true));
         t0 = t1;
     }
-    actions.push_back(Action(p0, t0, p0, theta1, 0, dtheta * direction / task.dt, false, true));
+    actions.push_back(Action(p0, t0, p0, theta1, 0, dtheta * direction / task.dt, lift, true));
     return actions;
 }

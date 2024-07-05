@@ -14,4 +14,3 @@ void genreateDistanceElementMap(ElementMap &map, double resolution, DistanceElem
 {
     distanceElementMap = DistanceElementMap(map, resolution);
 }
-

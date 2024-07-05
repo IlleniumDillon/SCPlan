@@ -78,6 +78,8 @@ public:
     DistanceElementMap(ElementMap &map, double resolution);
     ~DistanceElementMap();
 
+    void updateElements(ElementMap &e);
+
     DistanceElementMap& operator=(const DistanceElementMap &distanceElementMap);
     DistanceElement* operator[](CoordI &index);
     DistanceElement* operator[](CoordD &position);

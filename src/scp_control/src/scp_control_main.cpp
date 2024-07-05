@@ -196,8 +196,10 @@ void SCPControlNode::timerCallback()
         }
 
         agentDefaultAction.agent_name = controlParameters.agent_name;
+        agentDefaultAction.object_name = agentActionList.actions[index].object_name;
         agentDefaultAction.v = agentActionList.actions[index].v;
         agentDefaultAction.w = agentActionList.actions[index].w;
+        agentDefaultAction.action = agentActionList.actions[index].action;
         agentDefaultAction.going_to.position.x = x2;
         agentDefaultAction.going_to.position.y = y2;
         agentDefaultAction.going_to.position.z = 0;

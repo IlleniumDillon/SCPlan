@@ -20,9 +20,12 @@ class CarryPlanner
 {
 public:
     ElementMap map;
-    GridMap gridMap;
-    DistanceElementMap distanceMap;
+    // GridMap gridMap;
+    // DistanceElementMap distanceMap;
     TaskCarry task;
+
+    double solveResolution;
+    double distanceMapResolution;
 
 public:
     CarryPlanner(){}
@@ -47,6 +50,9 @@ private:
 
         CoordD agentPosition3;
         double agentTheta3;
+
+        CoordD objectPosition;
+        double objectTheta;
 
         double V, W;
         double dt;

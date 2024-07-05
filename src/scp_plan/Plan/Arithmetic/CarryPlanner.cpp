@@ -7,31 +7,38 @@ CarryPlanner::CarryPlanner(ElementMap &map, double solveResolution, double dista
     this->map = map;
     // distanceMap = DistanceElementMap(map, distanceMapResolution); 
     // gridMap = GridMap(map, solveResolution);
-    std::future<void> distanceMapFuture = std::async(
-        std::launch::async,
-        genreateDistanceElementMap,
-        std::ref(map),
-        distanceMapResolution,
-        std::ref(distanceMap)
-    );
-    std::future<void> gridMapFuture = std::async(
-        std::launch::async,
-        generateGridMap,
-        std::ref(map),
-        solveResolution,
-        std::ref(gridMap)
-    );
-    distanceMapFuture.wait();
-    gridMapFuture.wait();
+    // std::future<void> distanceMapFuture = std::async(
+    //     std::launch::async,
+    //     genreateDistanceElementMap,
+    //     std::ref(map),
+    //     distanceMapResolution,
+    //     std::ref(distanceMap)
+    // );
+    // std::future<void> gridMapFuture = std::async(
+    //     std::launch::async,
+    //     generateGridMap,
+    //     std::ref(map),
+    //     solveResolution,
+    //     std::ref(gridMap)
+    // );
+    // distanceMapFuture.wait();
+    // gridMapFuture.wait();
+    this->solveResolution = solveResolution;
+    this->distanceMapResolution = distanceMapResolution;
 }
 
 PlanResult CarryPlanner::plan(TaskCarry &task)
 {
-    auto targetObject = *std::find_if(
+    auto targetObject_it = std::find_if(
         map.elements.begin(),
         map.elements.end(),
         [task](Element &element) { return element.id == task.elementId; }
     );
+    if (targetObject_it == map.elements.end())
+    {
+        return PlanResult();
+    }
+    auto targetObject = *targetObject_it;
     int numAnchor = targetObject.anchors.size();
     if (numAnchor == 0)
     {
@@ -58,8 +65,9 @@ PlanResult CarryPlanner::plan(TaskCarry &task)
         input.agentTheta2 = afterCarryPositions[i].z;
         input.agentPosition3 = task.agentGoal;
         input.agentTheta3 = task.agentTheta1;
+        input.objectPosition = task.elementTargetPosition;
+        input.objectTheta = task.elementTargetTheta;
     }
-
     int left = numAnchor;
     int current = 0;
     while (left >= MAX_THREAD_NUM)
@@ -119,9 +127,14 @@ PlanResult CarryPlanner::planThread(PlanThreadInput &input)
     ElementMap threadMap = map;
     std::thread::id threadId = std::this_thread::get_id();
     PlanResult result;
-    HybridAStar hybridAStar(threadMap, gridMap, distanceMap);
+    HybridAStar hybridAStar;
 
     /// step 1:
+    hybridAStar.resetMap();
+    hybridAStar.map = threadMap;
+    hybridAStar.initDistanceElementMap(hybridAStar.map, distanceMapResolution);
+    hybridAStar.initGridMap(hybridAStar.map, solveResolution);
+
     TaskLowLevel task;
     task.start = input.agentPosition0;
     task.theta0 = input.agentTheta0;
@@ -143,6 +156,7 @@ PlanResult CarryPlanner::planThread(PlanThreadInput &input)
     result.actions.insert(result.actions.end(), result0.actions.begin(), result0.actions.end());
 
     /// step 2:
+    threadMap.agent.setGeometry(input.agentPosition1, input.agentTheta1);
     auto targetObjectIt = std::find_if(
         threadMap.elements.begin(),
         threadMap.elements.end(),
@@ -180,13 +194,14 @@ PlanResult CarryPlanner::planThread(PlanThreadInput &input)
     //     std::cout << "(" << threadMap.agent.shape.vertices[i].x << ", " << threadMap.agent.shape.vertices[i].y << ")" << std::endl;
     // }
     
-    hybridAStar.ignoreId.push_back(input.elementId);
+    // hybridAStar.ignoreId.push_back(input.elementId);
     hybridAStar.map = threadMap;
+    hybridAStar.distanceMap.updateElements(threadMap);
     task.start = input.agentPosition1;
     task.theta0 = input.agentTheta1;
     task.goal = input.agentPosition2;
     task.theta1 = input.agentTheta2;
-    PlanResult result1 = hybridAStar.plan(task);
+    PlanResult result1 = hybridAStar.plan(task, true);
     std::cout << "[Thread " << threadId << "] " << "[1] success: " << result1.success << " gCost: " << result1.gCost << " timeCost: " << result1.timeCost << " iterations: " << result1.iterations << std::endl;
 
     if (!result1.success)
@@ -199,6 +214,7 @@ PlanResult CarryPlanner::planThread(PlanThreadInput &input)
     result.actions.insert(result.actions.end(), result1.actions.begin(), result1.actions.end());
 
     /// step 3:
+    targetObject.setGeometry(input.objectPosition, input.objectTheta);
     threadMap.elements.push_back(targetObject);
     threadMap.agent = agentBackup;
     task.start = input.agentPosition2;
@@ -207,7 +223,8 @@ PlanResult CarryPlanner::planThread(PlanThreadInput &input)
     task.theta1 = input.agentTheta3;
 
     hybridAStar.map = threadMap;
-    hybridAStar.ignoreId.clear();
+    hybridAStar.distanceMap.updateElements(threadMap);
+    // hybridAStar.ignoreId.clear();
 
     PlanResult result2 = hybridAStar.plan(task);
     std::cout << "[Thread " << threadId << "] " << "[2] success: " << result2.success << " gCost: " << result2.gCost << " timeCost: " << result2.timeCost << " iterations: " << result2.iterations << std::endl;

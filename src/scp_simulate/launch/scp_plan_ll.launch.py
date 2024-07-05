@@ -27,7 +27,7 @@ def generate_launch_description():
 
     ld.add_action(
         ExecuteProcess(
-            cmd=['gazebo', '-s', 'libgazebo_ros_factory.so', gazebo_world_file],
+            cmd=['gazebo', '--verbose', '-s', 'libgazebo_ros_factory.so', gazebo_world_file],
             output="screen"
         )
     )
