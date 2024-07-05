@@ -84,6 +84,8 @@ void GazeboRosModelStatePrivate::OnUpdate(const gazebo::common::UpdateInfo &info
     std::lock_guard<std::mutex> scoped_lock(lock_);
     gazebo::physics::Model_V modelList = world_->Models();
     scp_message::msg::ModelStateList msg;
+    msg.header.stamp = gazebo_ros::Convert<builtin_interfaces::msg::Time>(current_time);
+    msg.header.frame_id = "map";
     for(auto pmodel : modelList)
     {
         scp_message::msg::ModelState state;

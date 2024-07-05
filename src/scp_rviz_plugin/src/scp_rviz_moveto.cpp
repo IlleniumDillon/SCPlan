@@ -1,6 +1,6 @@
 #include "scp_rviz_moveto.hpp"
 
-scp_rviz_moveto::MoveTo::MoveTo() : qos_profile_(5)
+scp_rviz_plugin::MoveTo::MoveTo() : qos_profile_(5)
 {
     shortcut_key_ = 'm';
 
@@ -18,7 +18,7 @@ scp_rviz_moveto::MoveTo::MoveTo() : qos_profile_(5)
         topic_property_, qos_profile_);
 }
 
-void scp_rviz_moveto::MoveTo::onInitialize()
+void scp_rviz_plugin::MoveTo::onInitialize()
 {
     hit_cursor_ = cursor_;
     std_cursor_ = rviz_common::getDefaultCursor();
@@ -27,15 +27,15 @@ void scp_rviz_moveto::MoveTo::onInitialize()
     updateTopic();
 }
 
-void scp_rviz_moveto::MoveTo::activate()
+void scp_rviz_plugin::MoveTo::activate()
 {
 }
 
-void scp_rviz_moveto::MoveTo::deactivate()
+void scp_rviz_plugin::MoveTo::deactivate()
 {
 }
 
-void scp_rviz_moveto::MoveTo::updateTopic()
+void scp_rviz_plugin::MoveTo::updateTopic()
 {
     rclcpp::Node::SharedPtr raw_node =
     context_->getRosNodeAbstraction().lock()->get_raw_node();
@@ -46,7 +46,7 @@ void scp_rviz_moveto::MoveTo::updateTopic()
     clock_ = raw_node->get_clock();
 }
 
-int scp_rviz_moveto::MoveTo::processMouseEvent(rviz_common::ViewportMouseEvent &event)
+int scp_rviz_plugin::MoveTo::processMouseEvent(rviz_common::ViewportMouseEvent &event)
 {
     int flags = 0;
 
@@ -71,11 +71,11 @@ int scp_rviz_moveto::MoveTo::processMouseEvent(rviz_common::ViewportMouseEvent &
     return flags;
 }
 
-void scp_rviz_moveto::MoveTo::updateAutoDeactivate()
+void scp_rviz_plugin::MoveTo::updateAutoDeactivate()
 {
 }
 
-void scp_rviz_moveto::MoveTo::publishPosition(const Ogre::Vector3 &position)
+void scp_rviz_plugin::MoveTo::publishPosition(const Ogre::Vector3 &position)
 {
     std::ostringstream s;
     s << "<b>Left-Click:</b> Select this point.";
@@ -84,7 +84,7 @@ void scp_rviz_moveto::MoveTo::publishPosition(const Ogre::Vector3 &position)
     this->setStatus(s.str().c_str());
 }
 
-void scp_rviz_moveto::MoveTo::setStatusForPosition(const Ogre::Vector3 &position)
+void scp_rviz_plugin::MoveTo::setStatusForPosition(const Ogre::Vector3 &position)
 {
     auto point = rviz_common::pointOgreToMsg(position);
     geometry_msgs::msg::PointStamped point_stamped;
@@ -95,4 +95,4 @@ void scp_rviz_moveto::MoveTo::setStatusForPosition(const Ogre::Vector3 &position
 }
 
 #include <pluginlib/class_list_macros.hpp>  // NOLINT
-PLUGINLIB_EXPORT_CLASS(scp_rviz_moveto::MoveTo, rviz_common::Tool)
+PLUGINLIB_EXPORT_CLASS(scp_rviz_plugin::MoveTo, rviz_common::Tool)

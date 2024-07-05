@@ -9,53 +9,73 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
-find_package(ament_cmake REQUIRED)
-find_package(ament_cmake_ros REQUIRED)
-find_package(pluginlib REQUIRED)
-find_package(rviz_common REQUIRED)
-find_package(rviz_rendering REQUIRED)
-find_package(scp_message REQUIRED)
+# FIND_PACKAGES(
+#   ament_cmake
+#   ament_cmake_ros
+#   rclcpp 
+#   pluginlib
+#   rviz_common
+#   rviz_rendering
+#   rviz_ogre_vendor
+#   geometry_msgs
+#   interactive_markers 
+#   tf2
+#   tf2_msgs
+#   map_msgs 
+#   nav_msgs
+#   scp_message
+#   OpenCV
+# )
 
-include_directories(
-  include/${PROJECT_NAME}
-)
+# find_package(Qt5 REQUIRED COMPONENTS Widgets Test)
 
-set(CMAKE_AUTOMOC ON)
-qt5_wrap_cpp(MOC_FILES
-  include/scp_rviz_plugin/scp_rviz_moveto.hpp
-)
+# include_directories(
+#   include/${PROJECT_NAME}
+# )
 
-add_library(move_to src/scp_rviz_moveto.cpp ${MOC_FILES})
-target_include_directories(move_to PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
-ament_target_dependencies(move_to
-  pluginlib
-  rviz_common
-  rviz_rendering
-  scp_message
-)
+# include_directories(
+#     ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/jsoncpp/include
+# )
+# set(
+#     JSONCPP_SRC
+#     ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/src/lib_json/json_reader.cpp
+#     ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/src/lib_json/json_value.cpp
+#     ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/src/lib_json/json_writer.cpp
+#     ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/src/lib_json/json_tool.h
+#     ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/src/lib_json/json_valueiterator.inl
+# )
 
-install(TARGETS move_to
-        EXPORT export_move_to
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib
-        RUNTIME DESTINATION bin
-)
-install(DIRECTORY include/
-        DESTINATION include
-)
-install(FILES plugin_description.xml
-        DESTINATION share/${PROJECT_NAME}
-)
-install(FILES icons/classes/MOVETO.png
-        DESTINATION share/${PROJECT_NAME}/icons/classes
-)
-ament_export_include_directories(include)
-ament_export_targets(export_move_to)
-pluginlib_export_plugin_description_file(rviz_common plugin_description.xml)
+# IMPORT_DIR(${CMAKE_SOURCE_DIR}/Components COMPONENTS_SRC COMPONENTS_DIR)
+# IMPORT_DIR(${CMAKE_SOURCE_DIR}/Plan PLAN_SRC PLAN_DIR)
+
+# include_directories(${COMPONENTS_DIR} ${PLAN_DIR} ${NODE_DIR})
+
+# BUILD_RVIZ_PLUGIN(
+#   TARGET scp_rviz_plugin
+#   SOURCES src/scp_rviz_moveto.cpp src/scp_rviz_elementmap.cpp ${JSONCPP_SRC} ${COMPONENTS_SRC} ${PLAN_SRC}
+#   HEADERS include/scp_rviz_plugin/scp_rviz_moveto.hpp include/scp_rviz_plugin/scp_rviz_elementmap.hpp
+#   DEPENDENCIES    
+#     rclcpp 
+#     pluginlib
+#     rviz_common
+#     rviz_rendering
+#     rviz_ogre_vendor
+#     geometry_msgs
+#     interactive_markers 
+#     map_msgs 
+#     nav_msgs
+#     tf2
+#     tf2_msgs
+#     scp_message
+#     OpenCV
+# )
+
+# INSTALL_RVIZ_PLUGIN(
+#   PLUGIN_XML plugin_description.xml
+#   ICONS icons/classes/MOVETO.png
+#         icons/classes/ELEMENTMAP.png
+# )
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

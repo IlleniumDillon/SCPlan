@@ -50,6 +50,51 @@ macro(BUILD_GAZEBO_PLUGIN)
         RUNTIME DESTINATION bin)
 endmacro()
 
+macro(BUILD_RVIZ_PLUGIN)
+    set(options)
+    set(oneValueArgs TARGET)
+    set(multiValueArgs SOURCES HEADERS DEPENDENCIES)
+    cmake_parse_arguments(BUILD_RVIZ_PLUGIN "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    message(NOTICE "Building rviz plugin: ${BUILD_RVIZ_PLUGIN_TARGET}")
+    message(NOTICE "Sources: ${BUILD_RVIZ_PLUGIN_SOURCES}")
+    message(NOTICE "Headers: ${BUILD_RVIZ_PLUGIN_HEADERS}")
+    message(NOTICE "Dependencies: ${BUILD_RVIZ_PLUGIN_DEPENDENCIES}")
+
+    set(CMAKE_AUTOMOC ON)
+    qt5_wrap_cpp(MOC_FILES ${BUILD_RVIZ_PLUGIN_HEADERS})
+    add_library(${BUILD_RVIZ_PLUGIN_TARGET} ${BUILD_RVIZ_PLUGIN_SOURCES} ${MOC_FILES})
+    target_include_directories(${BUILD_RVIZ_PLUGIN_TARGET} PUBLIC 
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+    )
+    ament_target_dependencies(${BUILD_RVIZ_PLUGIN_TARGET} ${BUILD_RVIZ_PLUGIN_DEPENDENCIES})
+    install(TARGETS ${BUILD_RVIZ_PLUGIN_TARGET}
+        EXPORT export_${BUILD_RVIZ_PLUGIN_TARGET}
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin)
+    ament_export_targets(export_${BUILD_RVIZ_PLUGIN_TARGET})
+endmacro()
+
+macro(INSTALL_RVIZ_PLUGIN)
+    set(options)
+    set(oneValueArgs PLUGIN_XML)
+    set(multiValueArgs ICONS)
+    cmake_parse_arguments(INSTALLRVIZPLUGIN "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    message(NOTICE "Installing rviz plugin: ${INSTALLRVIZPLUGIN_PLUGIN_XML}")
+    message(NOTICE "Icons: ${INSTALLRVIZPLUGIN_ICONS}")
+
+    install(DIRECTORY include/ DESTINATION include)
+    install(FILES ${INSTALLRVIZPLUGIN_PLUGIN_XML} DESTINATION share/${PROJECT_NAME})
+    foreach(icon ${INSTALLRVIZPLUGIN_ICONS})
+        install(FILES ${icon} DESTINATION share/${PROJECT_NAME}/icons/classes)
+    endforeach()
+    ament_export_include_directories(include)
+    pluginlib_export_plugin_description_file(rviz_common ${INSTALLRVIZPLUGIN_PLUGIN_XML})
+endmacro()
+
 macro(INSTALL_DIR dirs)
     set(INSTALL_DIRS ${ARGV})
     message(NOTICE "Installing directories: ${INSTALL_DIRS}")

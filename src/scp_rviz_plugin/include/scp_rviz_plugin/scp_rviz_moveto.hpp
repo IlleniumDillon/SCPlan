@@ -36,7 +36,7 @@ class QosProfileProperty;
 }  // namespace properties
 }  // namespace rviz_common
 
-namespace scp_rviz_moveto
+namespace scp_rviz_plugin
 {
 class RVIZ_DEFAULT_PLUGINS_PUBLIC MoveTo : public rviz_common::Tool
 {
