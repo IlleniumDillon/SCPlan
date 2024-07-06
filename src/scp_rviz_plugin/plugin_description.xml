@@ -1,8 +1,0 @@
-<library path="scp_rviz_plugin">
-  <class name="MOVETO" type="scp_rviz_plugin::MoveTo" base_class_type="rviz_common::Tool">
-    <description>Tutorial to display a point</description>
-  </class>
-  <class name="ELEMENTMAP" type="scp_rviz_plugin::SCElementMap" base_class_type="rviz_common::Display">
-    <description>Tutorial to display a point</description>
-  </class>
-</library>

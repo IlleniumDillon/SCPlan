@@ -60,10 +60,10 @@ SCPPlanNode::SCPPlanNode()
     RCLCPP_INFO(get_logger(), "Publishing agent_actions");
     occupancyGridPublisher = create_publisher<nav_msgs::msg::OccupancyGrid>("occupancy_grid", 1);
     RCLCPP_INFO(get_logger(), "Publishing occupancy_grid");
-    // agentTargetPoseSubscription = create_subscription<geometry_msgs::msg::PoseStamped>(
-    //     "goal_pose", 1, std::bind(&SCPPlanNode::agentTargetPoseCallback, this, std::placeholders::_1));
     agentTargetPoseSubscription = create_subscription<geometry_msgs::msg::PoseStamped>(
-        "goal_pose", 1, std::bind(&SCPPlanNode::goodTargetPoseCallback, this, std::placeholders::_1));
+        "goal_pose", 1, std::bind(&SCPPlanNode::agentTargetPoseCallback, this, std::placeholders::_1));
+    // agentTargetPoseSubscription = create_subscription<geometry_msgs::msg::PoseStamped>(
+    //     "goal_pose", 1, std::bind(&SCPPlanNode::goodTargetPoseCallback, this, std::placeholders::_1));
     pathPublisher = create_publisher<nav_msgs::msg::Path>("path", 1);
     RCLCPP_INFO(get_logger(), "Publishing path");
 

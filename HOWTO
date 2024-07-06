@@ -1,0 +1,3 @@
+ros2 launch scp_simulate scp_world_only.launch.py # To view the scene
+
+ros2 launch scp_simulate scp_plan_ll.launch.py # To view the scene & test HybridAStar plan 
