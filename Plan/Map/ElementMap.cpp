@@ -34,6 +34,7 @@ Element::Element(Polygon &originShape, std::vector<CoordD> &originAnchors, Coord
 
 Element::Element(const Element &e)
 {
+    this->name = e.name;
     this->originShape = e.originShape;
     this->originAnchors = e.originAnchors;
     this->shape = e.shape;
@@ -45,6 +46,7 @@ Element::Element(const Element &e)
 
 Element &Element::operator=(const Element &e)
 {
+    this->name = e.name;
     this->originShape = e.originShape;
     this->originAnchors = e.originAnchors;
     this->shape = e.shape;

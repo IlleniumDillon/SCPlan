@@ -88,6 +88,56 @@ DistanceElementMap::~DistanceElementMap()
     distanceMap = nullptr;
 }
 
+void DistanceElementMap::updateElements(ElementMap &map)
+{
+    double rExternal = 0;
+    for (auto &p : map.agent.originShape.vertices)
+    {
+        double r = p.norm();
+        if (r > rExternal)
+        {
+            rExternal = r;
+        }
+    }
+    rExternal *= 1.1;
+
+    for (double x = minX; x < maxX; x += resolution)
+    {
+        for (double y = minY; y < maxY; y += resolution)
+        {
+            CoordD position(x, y);
+            DistanceElement *tmp = (*this)(x, y);
+            if (tmp != nullptr)
+            {
+                tmp->elementIds.clear();
+            }
+            for (Element &e : map.elements)
+            {
+                if (e.shape.inside(position))
+                {
+                    for (double ix = x - rExternal; ix < x + rExternal; ix += resolution)
+                    {
+                        for (double iy = y - rExternal; iy < y + rExternal; iy += resolution)
+                        {
+                            DistanceElement *element = (*this)(ix, iy);
+                            if (element == nullptr)
+                            {
+                                continue;
+                            }
+                            double d = (position - CoordD(ix, iy)).norm();
+                            element->elementIds.insert(e.id);
+                            if (d < element->distance)
+                            {
+                                element->distance = d;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 DistanceElementMap &DistanceElementMap::operator=(const DistanceElementMap &distanceElementMap)
 {
     if (distanceMap != nullptr)

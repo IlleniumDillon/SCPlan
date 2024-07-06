@@ -16,6 +16,8 @@
 class Element
 {
 public:
+    std::string name;
+
     Polygon originShape;
     std::vector<CoordD> originAnchors;
 
@@ -75,6 +77,8 @@ public:
     DistanceElementMap();
     DistanceElementMap(ElementMap &map, double resolution);
     ~DistanceElementMap();
+
+    void updateElements(ElementMap &e);
 
     DistanceElementMap& operator=(const DistanceElementMap &distanceElementMap);
     DistanceElement* operator[](CoordI &index);

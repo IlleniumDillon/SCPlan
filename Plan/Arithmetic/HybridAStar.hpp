@@ -32,11 +32,11 @@ public:
     void setIgnoreId(std::vector<int> &ignoreId);   
 
     void generateKinematics();
-    PlanResult plan(TaskLowLevel &task);
+    PlanResult plan(TaskLowLevel &task, bool lift = false);
     void getNeighbors(Grid* current, std::vector<Grid*> &neighbors, std::vector<Action> &actions, std::vector<double> &costs);
     double heuristic(Grid* current, Grid* goal, double weight = 1.0);
     bool checkCollision(Element& element);
-    std::vector<Action> finalPath(CoordD &position0, double &theta0, CoordD &position1, double &theta1);
+    std::vector<Action> finalPath(CoordD &position0, double &theta0, CoordD &position1, double &theta1, bool lift = false);
 };
 
 #endif // HYBRIDASTAR_HPP
