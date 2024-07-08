@@ -34,7 +34,7 @@ def generate_launch_description():
     ld.add_action(
         Node(
             package='scp_plan',
-            executable='scp_plan',
+            executable='scp_hybridastar_plan',
             output='screen'
         )
     )

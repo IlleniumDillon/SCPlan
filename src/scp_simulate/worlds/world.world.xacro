@@ -77,6 +77,38 @@
 
 
         <plugin name="agent_action" filename="libgazebo_ros_agentaction.so" />
-        <plugin name="model_states" filename="libgazebo_ros_modelstate.so" />
+        <plugin name="model_states" filename="libgazebo_ros_modelstate.so" >
+            <static_models>
+                wall10_0 
+                wall10_1 
+                wall12_2 
+                wall12_3 
+                obstacle_0 
+                obstacle_1 
+                obstacle_2
+                obstacle_3
+                obstacle_4
+                obstacle_5
+                obstacle_6
+                obstacle_7
+                obstacle_8
+                obstacle_9
+                obstacle_10
+                obstacle_11
+                obstacle_12
+                obstacle_13
+                obstacle_14
+                obstacle_15
+                obstacle_16
+                obstacle_17
+            </static_models>
+            <dynamic_models>
+                good_0
+                good_1
+            </dynamic_models>
+            <agent_model>
+                agent_0 
+            </agent_model>
+        </plugin>
     </world>
 </sdf>

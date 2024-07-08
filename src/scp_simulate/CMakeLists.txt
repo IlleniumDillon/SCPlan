@@ -51,7 +51,7 @@ BUILD_EXEC(
   DEPENDENCIES rclcpp geometry_msgs nav_msgs std_msgs scp_message
 )
 
-file (GLOB SCP_SIMULATE_MODELSTATE_SOURCE "src/gazebo_ros_modelstate*.cpp")
+file (GLOB SCP_SIMULATE_MODELSTATE_SOURCE "src/gazebo_ros_modelstate.cpp")
 BUILD_GAZEBO_PLUGIN(
   TARGET gazebo_ros_modelstate 
   SOURCES ${SCP_SIMULATE_MODELSTATE_SOURCE}

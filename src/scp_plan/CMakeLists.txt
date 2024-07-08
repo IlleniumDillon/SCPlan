@@ -31,6 +31,7 @@ FIND_PACKAGES(
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/jsoncpp/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/scp_hybridastar_plan
 )
 set(
     JSONCPP_SRC
@@ -41,15 +42,10 @@ set(
     ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/src/lib_json/json_valueiterator.inl
 )
 
-IMPORT_DIR(${CMAKE_SOURCE_DIR}/Components COMPONENTS_SRC COMPONENTS_DIR)
-IMPORT_DIR(${CMAKE_SOURCE_DIR}/Plan PLAN_SRC PLAN_DIR)
-
-include_directories(${COMPONENTS_DIR} ${PLAN_DIR} ${NODE_DIR})
-
-file (GLOB SCP_PLAN_SOURCE "Node/*.cpp")
+file (GLOB SCP_HYBRIDASTAR_PLAN_SOURCE "src/scp_hybridastar_plan/*.cpp")
 BUILD_EXEC(
-  TARGET scp_plan
-  SOURCES ${SCP_PLAN_SOURCE} ${JSONCPP_SRC} ${COMPONENTS_SRC} ${PLAN_SRC} 
+  TARGET scp_hybridastar_plan
+  SOURCES ${SCP_HYBRIDASTAR_PLAN_SOURCE} ${JSONCPP_SRC}
   DEPENDENCIES rclcpp geometry_msgs nav_msgs sensor_msgs std_msgs std_srvs tf2 tf2_geometry_msgs tf2_ros trajectory_msgs scp_message OpenCV Eigen3 Boost Threads
 )
 
