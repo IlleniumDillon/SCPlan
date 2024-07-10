@@ -16,29 +16,16 @@ void HybridAStar::config(double v, double w, double dt, int v_step, int w_step)
     double w_resolution = 2 * w / w_step;
 
     control_list.clear();
-    for (double v_ = -v; v_ <= v; v_ += v_resolution)
-    {
-        for (double w_ = -w; w_ <= w; w_ += w_resolution)
-        {
-            control_list.push_back(
-                std::make_pair(v_, w_)
+    control_list.push_back(
+                std::make_pair(v, -w)
             );
-        }
-    }
-
-    // for (double v_ = -v; v_ <= v; v_ += v_resolution)
-    // {
-    //     control_list.push_back(
-    //         std::make_pair(v_, 0)
-    //     );
-    // }
-
-    // for (double w_ = -w; w_ <= w; w_ += w_resolution)
-    // {
-    //     control_list.push_back(
-    //         std::make_pair(0, w_)
-    //     );
-    // } 
+    control_list.push_back(
+                std::make_pair(v, 0)
+            );
+    control_list.push_back(
+                std::make_pair(v, w)
+            );
+    
 }
 
 void scp::HybridAStar::updateElement(std::vector<Element> &obstacles, Element &agent)
@@ -51,33 +38,12 @@ void HybridAStar::plan(GridMap &grid_map, Pose2D &start_pose, Pose2D &goal_pose,
 {
     plan_result = PlanResult();
     this->grid_map = grid_map;
-    Element temp = agent;
-    agent_occupied.clear();
-    for (int i = 0; i < grid_map.height; i++)
-    {
-        Pose2D pose;
-        pose.x = 0;
-        pose.y = 0;
-        pose.theta = grid_map.yawList[i];
-        temp.updatePose(pose);
-        std::vector<std::pair<int, int>> occupied;
-        temp.getDispersed(occupied, grid_map.positionResolution, grid_map.oriX, grid_map.oriY);
-        agent_occupied.push_back(occupied);
-    }
+    
+    auto timeStart = std::chrono::steady_clock::now();
     plan(start_pose, goal_pose);
-    // auto start_index = grid_map(start_pose);
-    // if (start_index.node == nullptr)
-    // {
-    //     RCLCPP_INFO(rclcpp::get_logger("scp_hybridastar_plan"), "start pose out of map");
-    //     return;
-    // }
-    // auto goal_index = grid_map(goal_pose);
-    // if (goal_index.node == nullptr)
-    // {
-    //     RCLCPP_INFO(rclcpp::get_logger("scp_hybridastar_plan"), "goal pose out of map");
-    //     RCLCPP_INFO(rclcpp::get_logger("scp_hybridastar_plan"), "%f, %f", goal_pose.x, goal_pose.y);
-    //     return;
-    // }
+    auto timeEnd = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart);
+    plan_result.planTime = (float)duration.count() / 1000;
 }
 
 void HybridAStar::plan(Pose2D &start_pose, Pose2D &goal_pose)
@@ -118,7 +84,8 @@ void HybridAStar::plan(Pose2D &start_pose, Pose2D &goal_pose)
         plan_result.iterations++;
         auto current_node = open_set.begin()->second;
         
-        if (current_node->index == goal_node->index)
+        // if (current_node->index == goal_node->index)
+        if (current_node->search_info.h.distance < 0.5)
         {
             GridNode *node = current_node;
             plan_result.cost = current_node->search_info.g.distance;
@@ -179,7 +146,7 @@ void HybridAStar::plan(Pose2D &start_pose, Pose2D &goal_pose)
 GridCost HybridAStar::heuristic(GridNode *node, GridNode *goal_node)
 {
     GridCost cost;
-    cost.distance = 1.1 * std::sqrt(
+    cost.distance = 1. * std::sqrt(
         std::pow(node->pose.x - goal_node->pose.x, 2) + std::pow(node->pose.y - goal_node->pose.y, 2)
     );
     cost.rotation = std::abs(goal_node->pose.theta - node->pose.theta);
@@ -192,21 +159,23 @@ GridCost HybridAStar::heuristic(GridNode *node, GridNode *goal_node)
 
 bool HybridAStar::checkCollision(Pose2D& pose)
 {
-    int dx = pose.x / grid_map.positionResolution;
-    int dy = pose.y / grid_map.positionResolution;
-    int dz = (int)(pose.theta / grid_map.yawResolution) % grid_map.depth;
-    dz = dz < 0 ? dz + grid_map.depth : dz;
+    Element temp = agent;
+    temp.updatePose(pose);
 
-    for (auto occupied : agent_occupied[dz])
+    for (auto point : temp.currentVertices)
     {
-        int x = dx + occupied.first;
-        int y = dy + occupied.second;
-        auto index = grid_map(x, y, dz);
-        if (index.node == nullptr || index.occupied)
+        auto index = grid_map(point);
+        if (index.node == nullptr)
+        {
+            return true;
+        }
+        if (index.occupied)
         {
             return true;
         }
     }
+
+    return false;
 }
 
 bool HybridAStar::checkCollision(GridState &index, Pose2D &pose)
@@ -214,34 +183,6 @@ bool HybridAStar::checkCollision(GridState &index, Pose2D &pose)
     Element temp = agent;
     temp.updatePose(pose);
 
-    // // RCLCPP_INFO(rclcpp::get_logger("scp_hybridastar_plan"), "---------");
-    // std::vector<cv::Point2f> agentVetices;
-    // for (auto vertex : temp.currentVertices)
-    // {
-    //     cv::Point2f point;
-    //     point.x = vertex.x;
-    //     point.y = vertex.y;
-    //     agentVetices.push_back(point);
-    //     // RCLCPP_INFO(rclcpp::get_logger("scp_hybridastar_plan"), "agent vertex: %f, %f", point.x, point.y);
-    // }
-    // auto collision = *(index.collision);
-    // for (auto i : collision)
-    // {
-    //     std::vector<cv::Point2f> obstacleVetices;
-    //     for (auto vertex : obstacles[i].currentVertices)
-    //     {
-    //         cv::Point2f point;
-    //         point.x = vertex.x;
-    //         point.y = vertex.y;
-    //         obstacleVetices.push_back(point);
-    //         // RCLCPP_INFO(rclcpp::get_logger("scp_hybridastar_plan"), "obstacle vertex: %f, %f", point.x, point.y);
-    //     }
-    //     std::vector<cv::Point2f> notuse;
-    //     if (cv::intersectConvexConvex(agentVetices, obstacleVetices, notuse))
-    //     {
-    //         return true;
-    //     }
-    // }
     for (auto i : *(index.collision))
     {
         if (temp.isCollision(obstacles[i]))
@@ -251,6 +192,48 @@ bool HybridAStar::checkCollision(GridState &index, Pose2D &pose)
     }
 
     return false;
+}
+
+void scp::HybridAStar::kinematic(Pose2D &pose0, Pose2D &pose1, double v, double w, double dt)
+{
+    if (pose0.theta >= 2 * M_PI)
+    {
+        pose0.theta -= 2 * M_PI;
+    }
+    if (pose0.theta < 0)
+    {
+        pose0.theta += 2 * M_PI;
+    }
+    double dtheta = w * dt;
+    pose1.theta = pose0.theta + dtheta;
+    if (pose1.theta >= 2 * M_PI)
+    {
+        pose1.theta -= 2 * M_PI;
+    }
+    if (pose1.theta < 0)
+    {
+        pose1.theta += 2 * M_PI;
+    }
+    if (abs(dtheta) < 1e-6)
+    {
+        double dx = v * dt * std::cos(pose0.theta);
+        double dy = v * dt * std::sin(pose0.theta);
+
+        pose1.x = pose0.x + dx;
+        pose1.y = pose0.y + dy;
+    }
+    else
+    {
+        double R = v / w;
+        double Choord = std::sqrt(
+            2 * R * R * (1 - std::cos(dtheta))
+        );
+        double dx = Choord * std::cos(pose0.theta + dtheta / 2);
+        double dy = Choord * std::sin(pose0.theta + dtheta / 2);
+
+        pose1.x = pose0.x + dx;
+        pose1.y = pose0.y + dy;
+    }
 }
 
 void HybridAStar::getNeighbors(GridNode *current_node, std::vector<GridNode *> &neighbors, std::vector<GridCost> &costs, std::vector<Pose2D>& poses)
@@ -268,18 +251,12 @@ void HybridAStar::getNeighbors(GridNode *current_node, std::vector<GridNode *> &
     
     for (auto control : control_list)
     {
-        
-        double v = control.first;
-        double w = control.second;
-        double n_x = c_x + v * std::cos(c_theta) * dt;
-        double n_y = c_y + v * std::sin(c_theta) * dt;
-        double n_theta = c_theta + w * dt;
-        n_theta = std::fmod(n_theta, 2 * M_PI);
         Pose2D n_pose;
-        n_pose.x = n_x;
-        n_pose.y = n_y;
-        n_pose.theta = n_theta;
+        kinematic(current_node->pose, n_pose, control.first, control.second, dt);
         auto n_index = grid_map(n_pose);
+        double n_x = n_pose.x;
+        double n_y = n_pose.y;
+        double n_theta = n_pose.theta;
         
         if (n_index.node == nullptr)
         {
@@ -302,7 +279,6 @@ void HybridAStar::getNeighbors(GridNode *current_node, std::vector<GridNode *> &
         if (checkCollision(n_pose))
         // if (checkCollision(n_index, n_pose))
         {
-            // RCLCPP_INFO(rclcpp::get_logger("scp_hybridastar_plan"), "collision");
             continue;
         }
         
@@ -312,7 +288,6 @@ void HybridAStar::getNeighbors(GridNode *current_node, std::vector<GridNode *> &
         cost.rotation = std::abs(n_theta - c_theta);
         costs.push_back(cost);
         poses.push_back(n_pose);
-        
     }
 }
 

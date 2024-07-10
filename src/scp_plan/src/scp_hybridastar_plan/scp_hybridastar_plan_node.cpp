@@ -10,7 +10,7 @@ SCPHAPlanNode::SCPHAPlanNode()
     pub_grid_map_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>("grid_map", 1);
     timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), std::bind(&SCPHAPlanNode::timerCallback, this));
 
-    grid_map_ = GridMap(-scene_width_ / 2, -scene_height_ / 2, scene_width_ / 2, scene_height_ / 2, position_resolution_, yaw_step_);
+    grid_map_ = GridMap(-scene_width_ / 2, -scene_height_ / 2, scene_width_ / 2, scene_height_ / 2, position_resolution_);
     hybrid_astar_.config(agent_v, agent_w, agent_dt, 2, 3);
 
     sub_goal_ = this->create_subscription<geometry_msgs::msg::PoseStamped>
@@ -24,7 +24,7 @@ void SCPHAPlanNode::loadConfig()
     declare_parameter("scene_height", 12.0);
     declare_parameter("position_resolution", 0.05);
     declare_parameter("yaw_step", 32);
-    declare_parameter("agent_v", 0.5);
+    declare_parameter("agent_v", 0.3);
     declare_parameter("agent_w", M_PI / 8);
     declare_parameter("agent_dt", 0.5);
     declare_parameter("check_collision_distance", 0.5);
@@ -232,7 +232,7 @@ void SCPHAPlanNode::goalCallback(const geometry_msgs::msg::PoseStamped::SharedPt
     hybrid_astar_.plan(grid_map_, agent_.pose, goal, agent_);
     if (hybrid_astar_.plan_result.success)
     {
-        RCLCPP_INFO(this->get_logger(), "Plan success. iterations: %d", hybrid_astar_.plan_result.iterations);
+        RCLCPP_INFO(this->get_logger(), "Plan success. iterations: %d. time: %f", hybrid_astar_.plan_result.iterations, hybrid_astar_.plan_result.planTime);
         hybrid_astar_.toMsg(path_msg_);
         pub_path_->publish(path_msg_);
     }

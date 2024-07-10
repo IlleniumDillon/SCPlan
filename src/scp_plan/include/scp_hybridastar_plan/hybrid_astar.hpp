@@ -42,6 +42,7 @@ private:
     GridCost heuristic(GridNode* node, GridNode* goal_node);
     bool checkCollision(Pose2D& pose);
     bool checkCollision(GridState& index, Pose2D& pose);
+    void kinematic(Pose2D& pose0, Pose2D& pose1, double v, double w, double dt);
 };
 
 } // namespace scp
