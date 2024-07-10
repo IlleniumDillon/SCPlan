@@ -48,30 +48,22 @@ GridMap::GridMap(double minX, double minY, double maxX, double maxY, double posi
     {
         yawList.push_back(i * yawResolution);
     }
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "1");
     
     oriX = (int)(minX / positionResolution);
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "2");
     oriY = (int)(minY / positionResolution);
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "3");
 
     gridMap = new GridNode *[width];
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "4");
     gridMapOccupied = new bool *[width];
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "5");
     gridMapCollision = new std::set<int> *[width];
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "6");
-    //gridThetaMap = new GridNode **[width];
+    gridThetaMap = new GridNode **[width];
     for (int i = 0; i < width; i++)
     {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "7");
         gridMap[i] = new GridNode[height];
         gridMapOccupied[i] = new bool[height];
         gridMapCollision[i] = new std::set<int>[height];
-        //gridThetaMap[i] = new GridNode *[height];
+        gridThetaMap[i] = new GridNode *[height];
         for (int j = 0; j < height; j++)
         {
-            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "8");
             gridMap[i][j].index.x = i;
             gridMap[i][j].index.y = j;
             gridMap[i][j].pose.x = (i + oriX) * positionResolution;
@@ -80,20 +72,18 @@ GridMap::GridMap(double minX, double minY, double maxX, double maxY, double posi
 
             gridMapOccupied[i][j] = false;
             gridMapCollision[i][j].clear();
-            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "9");
 
-            //gridThetaMap[i][j] = new GridNode[depth];
-            // for (int k = 0; k < depth; k++)
-            // {
-            //     gridThetaMap[i][j][k].index.x = i;
-            //     gridThetaMap[i][j][k].index.y = j;
-            //     gridThetaMap[i][j][k].index.z = k;
-            //     gridThetaMap[i][j][k].pose.x = (i + oriX) * positionResolution;
-            //     gridThetaMap[i][j][k].pose.y = (j + oriY) * positionResolution;
-            //     gridThetaMap[i][j][k].pose.theta = yawList[k];
-            // }
+            gridThetaMap[i][j] = new GridNode[depth];
+            for (int k = 0; k < depth; k++)
+            {
+                gridThetaMap[i][j][k].index.x = i;
+                gridThetaMap[i][j][k].index.y = j;
+                gridThetaMap[i][j][k].index.z = k;
+                gridThetaMap[i][j][k].pose.x = (i + oriX) * positionResolution;
+                gridThetaMap[i][j][k].pose.y = (j + oriY) * positionResolution;
+                gridThetaMap[i][j][k].pose.theta = yawList[k];
+            }
         }
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "10");
     }
     elementOccupied.clear();
     elementCollision.clear();
@@ -375,6 +365,8 @@ GridMap &GridMap::operator=(const GridMap &map)
             
             gridMapOccupied[i][j] = map.gridMapOccupied[i][j];
             gridMapCollision[i][j] = map.gridMapCollision[i][j];
+
+            gridThetaMap[i][j] = new GridNode[depth];
             for (int k = 0; k < depth; k++)
             {
                 gridThetaMap[i][j][k] = map.gridThetaMap[i][j][k];

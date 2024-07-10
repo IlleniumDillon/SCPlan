@@ -64,7 +64,7 @@ void HybridAStar::plan(GridMap &grid_map, Pose2D &start_pose, Pose2D &goal_pose,
 {
     plan_result = PlanResult();
     this->grid_map = grid_map;
-    
+    search_mode = 0;
     auto timeStart = std::chrono::steady_clock::now();
     plan(start_pose, goal_pose);
     auto timeEnd = std::chrono::steady_clock::now();
