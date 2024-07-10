@@ -28,11 +28,15 @@ public:
     std::vector<Point> currentVertices;
     std::vector<Point> originAnchors;
     std::vector<Point> currentAnchors;
+    std::vector<Point> originCollisionVertices;
+    std::vector<Point> currentCollisionVertices;
 public:
     Element(){};
-    Element(int id, std::vector<Point> originVertices, std::vector<Point> originAnchors);
+    Element(int id, std::vector<Point> originVertices, std::vector<Point> originAnchors, double collisionRadius);
     void updatePose(Pose2D pose);
     void getDispersed(std::vector<std::pair<int,int>> &dispersed, double resolution, int oriX, int oriY);
+    void getCollision(std::vector<std::pair<int,int>> &collision, double resolution, int oriX, int oriY);
+    bool isCollision(Element& other);
 };
 
 } // namespace scp

@@ -90,7 +90,7 @@ struct GridState
 {
     GridNode* node = nullptr;
     bool occupied = false;
-    double distance = 0;
+    std::set<int>* collision = nullptr;
 };
 
 struct PlanResult

@@ -51,12 +51,12 @@ GridMap::GridMap(double minX, double minY, double maxX, double maxY, double posi
 
     gridMap = new GridNode **[width];
     gridMapOccupied = new bool *[width];
-    gridMapDistance = new double *[width];
+    gridMapCollision = new std::set<int> *[width];
     for (int i = 0; i < width; i++)
     {
         gridMap[i] = new GridNode *[height];
         gridMapOccupied[i] = new bool[height];
-        gridMapDistance[i] = new double[height];
+        gridMapCollision[i] = new std::set<int>[height];
         for (int j = 0; j < height; j++)
         {
             gridMap[i][j] = new GridNode[depth];
@@ -70,9 +70,11 @@ GridMap::GridMap(double minX, double minY, double maxX, double maxY, double posi
                 gridMap[i][j][k].pose.theta = yawList[k];
             }
             gridMapOccupied[i][j] = false;
-            gridMapDistance[i][j] = 0;
+            gridMapCollision[i][j].clear();
         }
     }
+    elementOccupied.clear();
+    elementCollision.clear();
 }
 
 GridMap::GridMap(const GridMap &map)
@@ -87,11 +89,11 @@ GridMap::GridMap(const GridMap &map)
             }
             delete[] gridMap[i];
             delete[] gridMapOccupied[i];
-            delete[] gridMapDistance[i];
+            delete[] gridMapCollision[i];
         }
         delete[] gridMap;
         delete[] gridMapOccupied;
-        delete[] gridMapDistance;
+        delete[] gridMapCollision;
     }
 
     this->minX = map.minX;
@@ -110,12 +112,12 @@ GridMap::GridMap(const GridMap &map)
 
     gridMap = new GridNode **[width];
     gridMapOccupied = new bool *[width];
-    gridMapDistance = new double *[width];
+    gridMapCollision = new std::set<int> *[width];
     for (int i = 0; i < width; i++)
     {
         gridMap[i] = new GridNode *[height];
         gridMapOccupied[i] = new bool[height];
-        gridMapDistance[i] = new double[height];
+        gridMapCollision[i] = new std::set<int>[height];
         for (int j = 0; j < height; j++)
         {
             gridMap[i][j] = new GridNode[depth];
@@ -124,9 +126,12 @@ GridMap::GridMap(const GridMap &map)
                 gridMap[i][j][k] = map.gridMap[i][j][k];
             }
             gridMapOccupied[i][j] = map.gridMapOccupied[i][j];
-            gridMapDistance[i][j] = map.gridMapDistance[i][j];
+            gridMapCollision[i][j] = map.gridMapCollision[i][j];
         }
     }
+
+    elementOccupied = map.elementOccupied;
+    elementCollision = map.elementCollision;
 }
 
 GridMap::~GridMap()
@@ -141,11 +146,11 @@ GridMap::~GridMap()
             }
             delete[] gridMap[i];
             delete[] gridMapOccupied[i];
-            delete[] gridMapDistance[i];
+            delete[] gridMapCollision[i];
         }
         delete[] gridMap;
         delete[] gridMapOccupied;
-        delete[] gridMapDistance;
+        delete[] gridMapCollision;
     }
 }
 
@@ -171,6 +176,26 @@ void GridMap::putElement(Element &element)
             gridMapOccupied[x][y] = true;
     }
     elementOccupied[element.id] = occupiedList;
+
+    if (elementCollision.count(element.id) > 0)
+    {
+        for (int i = 0; i < elementCollision[element.id].size(); i++)
+        {
+            int x = elementCollision[element.id][i].first;
+            int y = elementCollision[element.id][i].second;
+            if (x >= 0 && x < width && y >= 0 && y < height)
+                gridMapCollision[x][y].erase(element.id);
+        }
+    }
+    std::vector<std::pair<int,int>> collisionList;
+    element.getCollision(collisionList, positionResolution, oriX, oriY);
+    for (int i = 0; i < collisionList.size(); i++)
+    {
+        int x = collisionList[i].first;
+        int y = collisionList[i].second;
+        if (x >= 0 && x < width && y >= 0 && y < height)
+            gridMapCollision[x][y].insert(element.id);
+    }
 }
 
 void GridMap::removeElement(Element &element)
@@ -185,6 +210,18 @@ void GridMap::removeElement(Element &element)
                 gridMapOccupied[x][y] = false;
         }
         elementOccupied.erase(element.id);
+    }
+
+    if (elementCollision.count(element.id) > 0)
+    {
+        for (int i = 0; i < elementCollision[element.id].size(); i++)
+        {
+            int x = elementCollision[element.id][i].first;
+            int y = elementCollision[element.id][i].second;
+            if (x >= 0 && x < width && y >= 0 && y < height)
+                gridMapCollision[x][y].erase(element.id);
+        }
+        elementCollision.erase(element.id);
     }
 }
 
@@ -208,13 +245,13 @@ GridState GridMap::operator()(int x, int y, int z)
     {
         state.node = &gridMap[x][y][z];
         state.occupied = gridMapOccupied[x][y];
-        state.distance = gridMapDistance[x][y];
+        state.collision = &gridMapCollision[x][y];
     }
     else
     {
         state.node = nullptr;
         state.occupied = false;
-        state.distance = 0;
+        state.collision = nullptr;
         RCLCPP_INFO(rclcpp::get_logger("scp_hybridastar_plan"), "Z: %d", z);
     }
     return state;
@@ -241,11 +278,11 @@ GridMap &GridMap::operator=(const GridMap &map)
             }
             delete[] gridMap[i];
             delete[] gridMapOccupied[i];
-            delete[] gridMapDistance[i];
+            delete[] gridMapCollision[i];
         }
         delete[] gridMap;
         delete[] gridMapOccupied;
-        delete[] gridMapDistance;
+        delete[] gridMapCollision;
     }
 
     this->minX = map.minX;
@@ -264,12 +301,12 @@ GridMap &GridMap::operator=(const GridMap &map)
 
     gridMap = new GridNode **[width];
     gridMapOccupied = new bool *[width];
-    gridMapDistance = new double *[width];
+    gridMapCollision = new std::set<int> *[width];
     for (int i = 0; i < width; i++)
     {
         gridMap[i] = new GridNode *[height];
         gridMapOccupied[i] = new bool[height];
-        gridMapDistance[i] = new double[height];
+        gridMapCollision[i] = new std::set<int>[height];
         for (int j = 0; j < height; j++)
         {
             gridMap[i][j] = new GridNode[depth];
@@ -278,9 +315,12 @@ GridMap &GridMap::operator=(const GridMap &map)
                 gridMap[i][j][k] = map.gridMap[i][j][k];
             }
             gridMapOccupied[i][j] = map.gridMapOccupied[i][j];
-            gridMapDistance[i][j] = map.gridMapDistance[i][j];
+            gridMapCollision[i][j] = map.gridMapCollision[i][j];
         }
     }
+
+    elementOccupied = map.elementOccupied;
+    elementCollision = map.elementCollision;
 
     return *this;
 }

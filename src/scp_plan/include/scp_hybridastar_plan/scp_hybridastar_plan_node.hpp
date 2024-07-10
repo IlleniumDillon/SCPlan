@@ -40,6 +40,7 @@ public:
     double agent_v;
     double agent_w;
     double agent_dt;
+    double check_collision_distance_;
     std::vector<Point> agent_shape_;
     std::vector<Point> agent_anchor_;
     std::vector<Point> good_shape_;

@@ -44,7 +44,8 @@ public:
 public:
     GridNode*** gridMap = nullptr;
     bool** gridMapOccupied = nullptr;
-    double** gridMapDistance = nullptr;
+    // double** gridMapDistance = nullptr;
+    std::set<int>** gridMapCollision = nullptr;
 
     double minX = 0, minY = 0, maxX = 0, maxY = 0;
     double positionResolution = 0;
@@ -55,6 +56,7 @@ public:
     int oriX = 0, oriY = 0;
 
     std::map<int, std::vector<std::pair<int,int>>> elementOccupied;
+    std::map<int, std::vector<std::pair<int,int>>> elementCollision;
 public:
     GridMap();
     GridMap(double minX, double minY, double maxX, double maxY, double positionResolution, int yaeStep);

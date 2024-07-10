@@ -23,10 +23,11 @@ void SCPHAPlanNode::loadConfig()
     declare_parameter("scene_width", 12.0);
     declare_parameter("scene_height", 12.0);
     declare_parameter("position_resolution", 0.05);
-    declare_parameter("yaw_step", 36);
+    declare_parameter("yaw_step", 32);
     declare_parameter("agent_v", 0.5);
     declare_parameter("agent_w", M_PI / 8);
     declare_parameter("agent_dt", 0.5);
+    declare_parameter("check_collision_distance", 0.5);
 
     scene_width_ = get_parameter("scene_width").as_double();
     scene_height_ = get_parameter("scene_height").as_double();
@@ -35,6 +36,7 @@ void SCPHAPlanNode::loadConfig()
     agent_v = get_parameter("agent_v").as_double();
     agent_w = get_parameter("agent_w").as_double();
     agent_dt = get_parameter("agent_dt").as_double();
+    check_collision_distance_ = get_parameter("check_collision_distance").as_double();
 
     try
     {
@@ -117,20 +119,20 @@ void SCPHAPlanNode::modelStateListCallback(const scp_message::msg::ModelStateLis
         dynamic_elements_.clear();
         for (auto& model_state : model_state_list_msg_.static_modelstates)
         {
-            Element element;
-            element.id = model_state.id;
+            Element temp;
+            temp.id = model_state.id;
             std::string type = model_state.name.substr(0, model_state.name.find_first_of("_"));
             if (type == "wall10")
             {
-                element.originVertices = wall10_shape_;
+                temp.originVertices = wall10_shape_;
             }
             else if (type == "wall12")
             {
-                element.originVertices = wall12_shape_;
+                temp.originVertices = wall12_shape_;
             }
             else if (type == "obstacle")
             {
-                element.originVertices = obstacle_shape_;
+                temp.originVertices = obstacle_shape_;
             }
             else
             {
@@ -140,18 +142,21 @@ void SCPHAPlanNode::modelStateListCallback(const scp_message::msg::ModelStateLis
             pose.x = model_state.pose.position.x;
             pose.y = model_state.pose.position.y;
             pose.theta = tf2::getYaw(model_state.pose.orientation);
+
+            Element element(temp.id, temp.originVertices, temp.originAnchors, check_collision_distance_);
             element.updatePose(pose);
             static_elements_.push_back(element);
             grid_map_.putElement(element);
         }
         for (auto& model_state : model_state_list_msg_.dynamic_modelstates)
         {
-            Element element;
-            element.id = model_state.id;
+            Element temp;
+            temp.id = model_state.id;
             std::string type = model_state.name.substr(0, model_state.name.find_first_of("_"));
             if (type == "good")
             {
-                element.originVertices = good_shape_;
+                temp.originVertices = good_shape_;
+                temp.originAnchors = good_anchor_;
             }
             else
             {
@@ -161,6 +166,8 @@ void SCPHAPlanNode::modelStateListCallback(const scp_message::msg::ModelStateLis
             pose.x = model_state.pose.position.x;
             pose.y = model_state.pose.position.y;
             pose.theta = tf2::getYaw(model_state.pose.orientation);
+
+            Element element(temp.id, temp.originVertices, temp.originAnchors, check_collision_distance_);
             element.updatePose(pose);
             dynamic_elements_.push_back(element);
             grid_map_.putElement(element);  
@@ -169,6 +176,7 @@ void SCPHAPlanNode::modelStateListCallback(const scp_message::msg::ModelStateLis
         {
             agent_.id = model_state_list_msg_.agent_modelstate.id;
             agent_.originVertices = agent_shape_;
+            agent_.originAnchors = agent_anchor_;
             Pose2D pose;
             pose.x = model_state_list_msg_.agent_modelstate.pose.position.x;
             pose.y = model_state_list_msg_.agent_modelstate.pose.position.y;
@@ -217,6 +225,10 @@ void SCPHAPlanNode::goalCallback(const geometry_msgs::msg::PoseStamped::SharedPt
     goal.x = goal_msg_.pose.position.x;
     goal.y = goal_msg_.pose.position.y;
     goal.theta = tf2::getYaw(goal_msg_.pose.orientation);
+    std::vector<Element> obstacles;
+    obstacles.insert(obstacles.end(), static_elements_.begin(), static_elements_.end());
+    obstacles.insert(obstacles.end(), dynamic_elements_.begin(), dynamic_elements_.end());
+    hybrid_astar_.updateElement(obstacles, agent_);
     hybrid_astar_.plan(grid_map_, agent_.pose, goal, agent_);
     if (hybrid_astar_.plan_result.success)
     {
