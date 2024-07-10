@@ -25,6 +25,32 @@ void HybridAStar::config(double v, double w, double dt, int v_step, int w_step)
     control_list.push_back(
                 std::make_pair(v, w)
             );
+
+    final_control_list.clear();
+    final_control_list.push_back(
+                std::make_pair(v, -w)
+            );
+    final_control_list.push_back(
+                std::make_pair(v, 0)
+            );
+    final_control_list.push_back(
+                std::make_pair(v, w)
+            );
+    final_control_list.push_back(
+                std::make_pair(0, -w)
+            );
+    final_control_list.push_back(
+                std::make_pair(0, w)
+            );
+    final_control_list.push_back(
+                std::make_pair(-v, -w)
+            );
+    final_control_list.push_back(
+                std::make_pair(-v, 0)
+            );
+    final_control_list.push_back(
+                std::make_pair(-v, w)
+            );
     
 }
 
@@ -42,7 +68,7 @@ void HybridAStar::plan(GridMap &grid_map, Pose2D &start_pose, Pose2D &goal_pose,
     auto timeStart = std::chrono::steady_clock::now();
     plan(start_pose, goal_pose);
     auto timeEnd = std::chrono::steady_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(timeEnd - timeStart);
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeStart);
     plan_result.planTime = (float)duration.count() / 1000;
 }
 
@@ -84,8 +110,13 @@ void HybridAStar::plan(Pose2D &start_pose, Pose2D &goal_pose)
         plan_result.iterations++;
         auto current_node = open_set.begin()->second;
         
-        // if (current_node->index == goal_node->index)
-        if (current_node->search_info.h.distance < 0.5)
+        if (search_mode == 0 && current_node->search_info.h.distance < 0.5)
+        {
+            RCLCPP_INFO(rclcpp::get_logger("scp_hybridastar_plan"), "switch to final search mode");
+            search_mode = 1;
+        }
+
+        if (current_node->index == goal_node->index)
         {
             GridNode *node = current_node;
             plan_result.cost = current_node->search_info.g.distance;
@@ -236,6 +267,11 @@ void scp::HybridAStar::kinematic(Pose2D &pose0, Pose2D &pose1, double v, double 
     }
 }
 
+// bool HybridAStar::finalPath(GridNode *current_node, GridNode *goal_node)
+// {
+//     return false;
+// }
+
 void HybridAStar::getNeighbors(GridNode *current_node, std::vector<GridNode *> &neighbors, std::vector<GridCost> &costs, std::vector<Pose2D>& poses)
 {
     
@@ -248,46 +284,91 @@ void HybridAStar::getNeighbors(GridNode *current_node, std::vector<GridNode *> &
     double c_y = current_node->pose.y;
     double c_theta = current_node->pose.theta;
 
-    
-    for (auto control : control_list)
+    if (search_mode == 0)
     {
-        Pose2D n_pose;
-        kinematic(current_node->pose, n_pose, control.first, control.second, dt);
-        auto n_index = grid_map(n_pose);
-        double n_x = n_pose.x;
-        double n_y = n_pose.y;
-        double n_theta = n_pose.theta;
-        
-        if (n_index.node == nullptr)
+        for (auto control : control_list)
         {
+            Pose2D n_pose;
+            kinematic(current_node->pose, n_pose, control.first, control.second, dt);
+            auto n_index = grid_map(n_pose);
+            double n_x = n_pose.x;
+            double n_y = n_pose.y;
+            double n_theta = n_pose.theta;
             
-            continue;
-        }
-        
-        if (n_index.node->index == current_node->index)
-        {
+            if (n_index.node == nullptr)
+            {
+                
+                continue;
+            }
             
-            continue;
-        }
-        
-        if (n_index.node->search_info.state == IN_CLOSESET)
-        {
+            if (n_index.node->index == current_node->index)
+            {
+                
+                continue;
+            }
             
-            continue;
+            if (n_index.node->search_info.state == IN_CLOSESET)
+            {
+                
+                continue;
+            }
+            
+            if (checkCollision(n_pose))
+            // if (checkCollision(n_index, n_pose))
+            {
+                continue;
+            }
+            
+            neighbors.push_back(n_index.node);
+            GridCost cost;
+            cost.distance = std::sqrt(std::pow(n_x - c_x, 2) + std::pow(n_y - c_y, 2));
+            cost.rotation = std::abs(n_theta - c_theta);
+            costs.push_back(cost);
+            poses.push_back(n_pose);
         }
-        
-        if (checkCollision(n_pose))
-        // if (checkCollision(n_index, n_pose))
+    }
+    else
+    {
+        for (auto control : final_control_list)
         {
-            continue;
+            Pose2D n_pose;
+            kinematic(current_node->pose, n_pose, control.first, control.second, dt);
+            auto n_index = grid_map[n_pose];
+            double n_x = n_pose.x;
+            double n_y = n_pose.y;
+            double n_theta = n_pose.theta;
+            
+            if (n_index.node == nullptr)
+            {
+                
+                continue;
+            }
+            
+            if (n_index.node->index == current_node->index)
+            {
+                
+                continue;
+            }
+            
+            if (n_index.node->search_info.state == IN_CLOSESET)
+            {
+                
+                continue;
+            }
+            
+            if (checkCollision(n_pose))
+            // if (checkCollision(n_index, n_pose))
+            {
+                continue;
+            }
+            
+            neighbors.push_back(n_index.node);
+            GridCost cost;
+            cost.distance = std::sqrt(std::pow(n_x - c_x, 2) + std::pow(n_y - c_y, 2));
+            cost.rotation = std::abs(n_theta - c_theta);
+            costs.push_back(cost);
+            poses.push_back(n_pose);
         }
-        
-        neighbors.push_back(n_index.node);
-        GridCost cost;
-        cost.distance = std::sqrt(std::pow(n_x - c_x, 2) + std::pow(n_y - c_y, 2));
-        cost.rotation = std::abs(n_theta - c_theta);
-        costs.push_back(cost);
-        poses.push_back(n_pose);
     }
 }
 

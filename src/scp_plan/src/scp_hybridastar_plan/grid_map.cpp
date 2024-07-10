@@ -35,25 +35,43 @@ GridMap::GridMap()
 {
 }
 
-GridMap::GridMap(double minX, double minY, double maxX, double maxY, double positionResolution)
-    : minX(minX), minY(minY), maxX(maxX), maxY(maxY), positionResolution(positionResolution)
+GridMap::GridMap(double minX, double minY, double maxX, double maxY, double positionResolution, int yawStep)
+    : minX(minX), minY(minY), maxX(maxX), maxY(maxY), positionResolution(positionResolution), yawStep(yawStep)
 {
     width = (int)((maxX - minX) / positionResolution);
     height = (int)((maxY - minY) / positionResolution);
+    depth = yawStep;
+
+    yawResolution = 2 * M_PI / yawStep;
+    yawList.clear();
+    for (int i = 0; i < yawStep; i++)
+    {
+        yawList.push_back(i * yawResolution);
+    }
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "1");
     
     oriX = (int)(minX / positionResolution);
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "2");
     oriY = (int)(minY / positionResolution);
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "3");
 
     gridMap = new GridNode *[width];
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "4");
     gridMapOccupied = new bool *[width];
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "5");
     gridMapCollision = new std::set<int> *[width];
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "6");
+    //gridThetaMap = new GridNode **[width];
     for (int i = 0; i < width; i++)
     {
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "7");
         gridMap[i] = new GridNode[height];
         gridMapOccupied[i] = new bool[height];
         gridMapCollision[i] = new std::set<int>[height];
+        //gridThetaMap[i] = new GridNode *[height];
         for (int j = 0; j < height; j++)
         {
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "8");
             gridMap[i][j].index.x = i;
             gridMap[i][j].index.y = j;
             gridMap[i][j].pose.x = (i + oriX) * positionResolution;
@@ -62,7 +80,20 @@ GridMap::GridMap(double minX, double minY, double maxX, double maxY, double posi
 
             gridMapOccupied[i][j] = false;
             gridMapCollision[i][j].clear();
+            RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "9");
+
+            //gridThetaMap[i][j] = new GridNode[depth];
+            // for (int k = 0; k < depth; k++)
+            // {
+            //     gridThetaMap[i][j][k].index.x = i;
+            //     gridThetaMap[i][j][k].index.y = j;
+            //     gridThetaMap[i][j][k].index.z = k;
+            //     gridThetaMap[i][j][k].pose.x = (i + oriX) * positionResolution;
+            //     gridThetaMap[i][j][k].pose.y = (j + oriY) * positionResolution;
+            //     gridThetaMap[i][j][k].pose.theta = yawList[k];
+            // }
         }
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "10");
     }
     elementOccupied.clear();
     elementCollision.clear();
@@ -77,10 +108,17 @@ GridMap::GridMap(const GridMap &map)
             delete[] gridMap[i];
             delete[] gridMapOccupied[i];
             delete[] gridMapCollision[i];
+            for (int j = 0; j < height; j++)
+            {
+                delete[] gridThetaMap[i][j];
+            }
+            delete[] gridThetaMap[i];
         }
+
         delete[] gridMap;
         delete[] gridMapOccupied;
         delete[] gridMapCollision;
+        delete[] gridThetaMap;
     }
 
     this->minX = map.minX;
@@ -92,20 +130,31 @@ GridMap::GridMap(const GridMap &map)
     this->height = map.height;
     this->oriX = map.oriX;
     this->oriY = map.oriY;
+    this->yawResolution = map.yawResolution;
+    this->yawStep = map.yawStep;
+    this->yawList = map.yawList;
+    this->depth = map.depth;
 
     gridMap = new GridNode *[width];
     gridMapOccupied = new bool *[width];
     gridMapCollision = new std::set<int> *[width];
+    gridThetaMap = new GridNode **[width];
     for (int i = 0; i < width; i++)
     {
         gridMap[i] = new GridNode [height];
         gridMapOccupied[i] = new bool[height];
         gridMapCollision[i] = new std::set<int>[height];
+        gridThetaMap[i] = new GridNode *[height];
         for (int j = 0; j < height; j++)
         {
             gridMap[i][j] = map.gridMap[i][j];
             gridMapOccupied[i][j] = map.gridMapOccupied[i][j];
             gridMapCollision[i][j] = map.gridMapCollision[i][j];
+            gridThetaMap[i][j] = new GridNode[depth];
+            for (int k = 0; k < depth; k++)
+            {
+                gridThetaMap[i][j][k] = map.gridThetaMap[i][j][k];
+            }
         }
     }
 
@@ -122,10 +171,16 @@ GridMap::~GridMap()
             delete[] gridMap[i];
             delete[] gridMapOccupied[i];
             delete[] gridMapCollision[i];
+            for (int j = 0; j < height; j++)
+            {
+                delete[] gridThetaMap[i][j];
+            }
+            delete[] gridThetaMap[i];
         }
         delete[] gridMap;
         delete[] gridMapOccupied;
         delete[] gridMapCollision;
+        delete[] gridThetaMap;
     }
 }
 
@@ -231,6 +286,36 @@ GridState GridMap::operator()(int x, int y)
     return state;
 }
 
+GridState scp::GridMap::operator()(int x, int y, int z)
+{
+    GridState state;
+    if (x >= 0 && x < width && y >= 0 && y < height && z >= 0 && z < depth)
+    {
+        state.collision = &gridMapCollision[x][y];
+        state.occupied = gridMapOccupied[x][y];
+        state.node = &gridThetaMap[x][y][z];
+    }
+    else
+    {
+        state.collision = nullptr;
+        state.occupied = false;
+        state.node = nullptr;
+    }
+    return state;
+}
+
+GridState scp::GridMap::operator[](Pose2D &pose)
+{
+    int x = (int)((pose.x) / positionResolution) - oriX;
+    int y = (int)((pose.y) / positionResolution) - oriY;
+    int z = (int)((pose.theta) / yawResolution) % depth;
+    if (z < 0)
+    {
+        z += depth;
+    }
+    return (*this)(x, y, z);
+}
+
 GridState GridMap::operator()(Pose2D &pose)
 {
     int x = (int)((pose.x) / positionResolution) - oriX;
@@ -269,21 +354,31 @@ GridMap &GridMap::operator=(const GridMap &map)
     this->height = map.height;
     this->oriX = map.oriX;
     this->oriY = map.oriY;
+    this->yawResolution = map.yawResolution;
+    this->yawStep = map.yawStep;
+    this->yawList = map.yawList;
+    this->depth = map.depth;
 
     gridMap = new GridNode *[width];
     gridMapOccupied = new bool *[width];
     gridMapCollision = new std::set<int> *[width];
+    gridThetaMap = new GridNode **[width];
     for (int i = 0; i < width; i++)
     {
         gridMap[i] = new GridNode [height];
         gridMapOccupied[i] = new bool[height];
         gridMapCollision[i] = new std::set<int>[height];
+        gridThetaMap[i] = new GridNode *[height];
         for (int j = 0; j < height; j++)
         {
             gridMap[i][j] = map.gridMap[i][j];
             
             gridMapOccupied[i][j] = map.gridMapOccupied[i][j];
             gridMapCollision[i][j] = map.gridMapCollision[i][j];
+            for (int k = 0; k < depth; k++)
+            {
+                gridThetaMap[i][j][k] = map.gridThetaMap[i][j][k];
+            }
         }
     }
 

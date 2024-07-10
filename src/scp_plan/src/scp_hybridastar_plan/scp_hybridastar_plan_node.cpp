@@ -10,12 +10,13 @@ SCPHAPlanNode::SCPHAPlanNode()
     pub_grid_map_ = this->create_publisher<nav_msgs::msg::OccupancyGrid>("grid_map", 1);
     timer_ = this->create_wall_timer(std::chrono::milliseconds(1000), std::bind(&SCPHAPlanNode::timerCallback, this));
 
-    grid_map_ = GridMap(-scene_width_ / 2, -scene_height_ / 2, scene_width_ / 2, scene_height_ / 2, position_resolution_);
+    grid_map_ = GridMap(-scene_width_ / 2, -scene_height_ / 2, scene_width_ / 2, scene_height_ / 2, position_resolution_, yaw_step_);
     hybrid_astar_.config(agent_v, agent_w, agent_dt, 2, 3);
 
     sub_goal_ = this->create_subscription<geometry_msgs::msg::PoseStamped>
         ("goal_pose", 1, std::bind(&SCPHAPlanNode::goalCallback, this, std::placeholders::_1));
     pub_path_ = this->create_publisher<nav_msgs::msg::Path>("path", 1);
+    RCLCPP_INFO(this->get_logger(), "SCP Hybrid A* Plan Node has been started.");
 }
 
 void SCPHAPlanNode::loadConfig()

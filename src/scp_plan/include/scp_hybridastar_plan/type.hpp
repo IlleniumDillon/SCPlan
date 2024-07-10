@@ -32,11 +32,11 @@ struct GridNodeIndex
 {
     int x = -1;
     int y = -1;
-    // int z = -1;
+    int z = -1;
 
     bool operator==(const GridNodeIndex& index) const
     {
-        return x == index.x && y == index.y; // && z == index.z;
+        return x == index.x && y == index.y && z == index.z;
     }
 };
 

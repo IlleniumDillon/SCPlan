@@ -47,20 +47,21 @@ public:
     bool** gridMapOccupied = nullptr;
     // double** gridMapDistance = nullptr;
     std::set<int>** gridMapCollision = nullptr;
+    GridNode*** gridThetaMap = nullptr;
 
     double minX = 0, minY = 0, maxX = 0, maxY = 0;
     double positionResolution = 0;
-    // double yawResolution = 0;
-    // int yawStep = 0;
-    // std::vector<double> yawList;
-    int width = 0, height = 0; //, depth = 0;
+    double yawResolution = 0;
+    int yawStep = 0;
+    std::vector<double> yawList;
+    int width = 0, height = 0, depth = 0;
     int oriX = 0, oriY = 0;
 
     std::map<int, std::vector<std::pair<int,int>>> elementOccupied;
     std::map<int, std::vector<std::pair<int,int>>> elementCollision;
 public:
     GridMap();
-    GridMap(double minX, double minY, double maxX, double maxY, double positionResolution);
+    GridMap(double minX, double minY, double maxX, double maxY, double positionResolution, int yawStep);
     GridMap(const GridMap& map);
     ~GridMap();
 
@@ -75,6 +76,9 @@ public:
     GridState operator()(Point &pose);
     GridState operator()(GridNodeIndex &index);
     GridState operator()(int x, int y);
+
+    GridState operator()(int x, int y, int z);
+    GridState operator[](Pose2D &pose);
 
     void toMsg(nav_msgs::msg::OccupancyGrid& msg);
 };
