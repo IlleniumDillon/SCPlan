@@ -1,2 +1,2 @@
-string who
+int32 who
 geometry_msgs/Pose going_to

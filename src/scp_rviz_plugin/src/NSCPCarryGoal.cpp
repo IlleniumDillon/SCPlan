@@ -1,116 +1,130 @@
 #include "NSCPCarryGoal.hpp"
 
-#include <sstream>
+#include <string>
 
-#include <OgreVector3.h>
+#include "geometry_msgs/msg/pose_stamped.hpp"
 
-#include "rclcpp/qos.hpp"
-
+#include "rviz_rendering/objects/arrow.hpp"
 #include "rviz_common/display_context.hpp"
-#include "rviz_common/interaction/view_picker_iface.hpp"
-#include "rviz_common/load_resource.hpp"
-#include "rviz_common/msg_conversions.hpp"
-#include "rviz_common/properties/bool_property.hpp"
+#include "rviz_common/logging.hpp"
 #include "rviz_common/properties/string_property.hpp"
 #include "rviz_common/properties/qos_profile_property.hpp"
-#include "rviz_common/render_panel.hpp"
-#include "rviz_common/viewport_mouse_event.hpp"
-#include "rviz_common/view_controller.hpp"
+
+#include "tf2/utils.h"
+#include "opencv2/opencv.hpp"
 
 namespace scp_rviz_plugin
 {
-NSCPCarryGoal::NSCPCarryGoal() : qos_profile_(5)
+NSCPCarryGoal::NSCPCarryGoal()
+    : PoseTool2(), qos_profile_(1), count(0)
 {
-    shortcut_key_ = 'u';
+    shortcut_key_ = 'g';
 
-    topic_property_ = new rviz_common::properties::StringProperty(
-        "Topic", "/clicked_point",
-        "The topic on which to publish points.",
+    pub_topic_property_ = new rviz_common::properties::StringProperty(
+        "Topic", "nscp_carry_goal",
+        "The topic on which to publish goals.",
         getPropertyContainer(), SLOT(updateTopic()), this);
 
-    auto_deactivate_property_ = new rviz_common::properties::BoolProperty(
-        "Single click", true,
-        "Switch away from this tool after one click.",
-        getPropertyContainer(), SLOT(updateAutoDeactivate()), this);
+    pub_qos_profile_property_ = new rviz_common::properties::QosProfileProperty(
+        pub_topic_property_, qos_profile_);
 
-    qos_profile_property_ = new rviz_common::properties::QosProfileProperty(
-        topic_property_, qos_profile_);
+    sub_topic_property_ = new rviz_common::properties::StringProperty(
+        "Sub Topic", "model_states",
+        "The topic on which to subscribe model state list.",
+        getPropertyContainer(), SLOT(updateTopic()), this);
+
+    sub_qos_profile_property_ = new rviz_common::properties::QosProfileProperty(
+        sub_topic_property_, qos_profile_);
 }
+
+NSCPCarryGoal::~NSCPCarryGoal() = default;
 
 void NSCPCarryGoal::onInitialize()
 {
-    hit_cursor_ = cursor_;
-    std_cursor_ = rviz_common::getDefaultCursor();
-    qos_profile_property_->initialize(
+    PoseTool2::onInitialize();
+    arrow_->setColor(0.0f, 1.0f, 0.0f, 1.0f);
+    pub_qos_profile_property_->initialize(
         [this](rclcpp::QoS profile) {this->qos_profile_ = profile;});
+    setName("NSCPCarryGoal");
     updateTopic();
 }
 
 void NSCPCarryGoal::activate()
 {
+    PoseTool2::activate();
+    //RVIZ_COMMON_LOG_INFO_STREAM("NSCPCarryGoal: activate");
 }
 
 void NSCPCarryGoal::deactivate()
 {
+    PoseTool2::deactivate();
+    //RVIZ_COMMON_LOG_INFO_STREAM("NSCPCarryGoal: deactivate");
 }
 
-int NSCPCarryGoal::processMouseEvent(rviz_common::ViewportMouseEvent &event)
+int NSCPCarryGoal::onPoseSet2(double x, double y, double theta)
 {
-    int flags = 0;
-
-    Ogre::Vector3 position;
-    bool success = context_->getViewPicker()->get3DPoint(event.panel, event.x, event.y, position);
-    setCursor(success ? hit_cursor_ : std_cursor_);
-
-    if (success) {
-        setStatusForPosition(position);
-
-        if (event.leftUp()) {
-        publishPosition(position);
-
-        if (auto_deactivate_property_->getBool()) {
-            flags |= Finished;
+    //RVIZ_COMMON_LOG_INFO_STREAM("NSCPCarryGoal: " << count);
+    if (count == 0)
+    {
+        cv::Point2d point(x, y);
+        bool find = false;
+        for (auto &state : dynamic_states)
+        {
+            cv::Point2d state_point(state.pose.position.x, state.pose.position.y);
+            if (cv::norm(point - state_point) < 0.5)
+            {
+                find = true;
+                msg.who = state.id;
+            }
         }
+        if (! find)
+        {
+            RVIZ_COMMON_LOG_ERROR_STREAM("NSCPCarryGoal: onPoseSet: No model found at (" << x << ", " << y << ")");
+            return (Finished | Render);
         }
-    } else {
-        setStatus("Move over an object to select the target point.");
+        else
+        {
+            RVIZ_COMMON_LOG_INFO_STREAM("NSCPCarryGoal: onPoseSet: " << msg.who);
+            count = 1;
+            return (Render);
+        }
     }
-
-    return flags;
+    else
+    {
+        msg.going_to.position.x = x;
+        msg.going_to.position.y = y;
+        msg.going_to.position.z = 0;
+        tf2::Quaternion quat;
+        quat.setRPY(0, 0, theta);
+        msg.going_to.orientation = tf2::toMsg(quat);
+        publisher_->publish(msg);
+        count = 0;
+        logPose("NSCPCarryGoal", msg.going_to.position, msg.going_to.orientation, theta, "map");
+        return (Finished | Render);
+    }
 }
 
 void NSCPCarryGoal::updateTopic()
 {
     rclcpp::Node::SharedPtr raw_node =
-    context_->getRosNodeAbstraction().lock()->get_raw_node();
+        context_->getRosNodeAbstraction().lock()->get_raw_node();
     // TODO(anhosi, wjwwood): replace with abstraction for publishers once available
     publisher_ = raw_node->
-        template create_publisher<geometry_msgs::msg::PointStamped>(
-        topic_property_->getStdString(), qos_profile_);
+        template create_publisher<scp_message::msg::ScpCarryTask>(
+        pub_topic_property_->getStdString(), qos_profile_);
     clock_ = raw_node->get_clock();
-}
 
-void NSCPCarryGoal::updateAutoDeactivate()
-{
-}
+    subscriber_ = raw_node->
+        template create_subscription<scp_message::msg::ModelStateList>(
+        sub_topic_property_->getStdString(), qos_profile_,
+        [this](scp_message::msg::ModelStateList::UniquePtr msg) {
+            //RVIZ_COMMON_LOG_INFO_STREAM("NSCPCarryGoal: updateTopic: " << msg->dynamic_modelstates.size());
+            dynamic_states = msg->dynamic_modelstates;
+            //count++;
+        });
 
-void NSCPCarryGoal::publishPosition(const Ogre::Vector3 &position) const
-{
-    auto point = rviz_common::pointOgreToMsg(position);
-    geometry_msgs::msg::PointStamped point_stamped;
-    point_stamped.point = point;
-    point_stamped.header.frame_id = context_->getFixedFrame().toStdString();
-    point_stamped.header.stamp = clock_->now();
-    publisher_->publish(point_stamped);
-}
-
-void NSCPCarryGoal::setStatusForPosition(const Ogre::Vector3 &position)
-{
-    std::ostringstream s;
-    s << "<b>Left-Click:</b> Select this point.";
-    s.precision(3);
-    s << " [" << position.x << "," << position.y << "," << position.z << "]";
-    setStatus(s.str().c_str());
+    RVIZ_COMMON_LOG_INFO_STREAM("NSCPCarryGoal: pubTopic: " << pub_topic_property_->getStdString());
+    RVIZ_COMMON_LOG_INFO_STREAM("NSCPCarryGoal: subTopic: " << sub_topic_property_->getStdString());
 }
 
 }  // namespace scp_rviz_plugin

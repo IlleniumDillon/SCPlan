@@ -32,6 +32,8 @@ FIND_PACKAGES(
   urdf
   visualization_msgs
   rviz_default_plugins
+  scp_message
+  OpenCV
 )
 find_package(Qt5 REQUIRED COMPONENTS Widgets Test)
 
@@ -47,7 +49,7 @@ BUILD_RVIZ_PLUGIN(
   TARGET scp_rviz_plugin
   SOURCES ${SCP_RVIZ_PLUGIN_SOURCE}
   HEADERS ${SCP_RVIZ_PLUGIN_HEADERS}
-  DEPENDENCIES rviz_common rviz_rendering rviz_ogre_vendor geometry_msgs image_transport interactive_markers laser_geometry map_msgs nav_msgs pluginlib rclcpp resource_retriever sensor_msgs tf2 tf2_geometry_msgs tf2_ros urdf visualization_msgs rviz_default_plugins
+  DEPENDENCIES rviz_common rviz_rendering rviz_ogre_vendor geometry_msgs image_transport interactive_markers laser_geometry map_msgs nav_msgs pluginlib rclcpp resource_retriever sensor_msgs tf2 tf2_geometry_msgs tf2_ros urdf visualization_msgs rviz_default_plugins scp_message OpenCV
 )
 
 INSTALL_RVIZ_PLUGIN(

@@ -1,60 +1,65 @@
 #ifndef NSCP_CARRY_GOAL_HPP
 #define NSCP_CARRY_GOAL_HPP
 
-#include <OgreVector3.h>
+#include <QObject>
 
-#include <QCursor>  // NOLINT cpplint cannot handle the include order here
-#include <QObject>  // NOLINT cpplint cannot handle the include order here
-
-#include "geometry_msgs/msg/point_stamped.hpp"
-#include "rclcpp/rclcpp.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "rclcpp/node.hpp"
 #include "rclcpp/qos.hpp"
 
-#include "rviz_common/tool.hpp"
-
+// #include "rviz_default_plugins/tools/pose/pose_tool.hpp"
+#include "_pose_tool2.hpp"
 #include "rviz_default_plugins/visibility_control.hpp"
+
+#include "scp_message/msg/scp_carry_task.hpp"
+#include "scp_message/msg/model_state_list.hpp"
 
 namespace rviz_common
 {
+class DisplayContext;
 namespace properties
 {
 class StringProperty;
-class BoolProperty;
 class QosProfileProperty;
-}
-}
+}  // namespace properties
+}  // namespace rviz_common
 
 namespace scp_rviz_plugin
 {
-class NSCPCarryGoal : public rviz_common::Tool
+class NSCPCarryGoal : public PoseTool2
 {
     Q_OBJECT
 public:
-    NSCPCarryGoal();
+  NSCPCarryGoal();
 
-    void onInitialize() override;
-    void activate() override;
-    void deactivate() override;
+  ~NSCPCarryGoal() override;
 
-    int processMouseEvent(rviz_common::ViewportMouseEvent &event) override;
+  void onInitialize() override;
+  void activate() override;
+  void deactivate() override;
+  
+protected:
+  int onPoseSet2(double x, double y, double theta) override;
 
 private Q_SLOTS:
-    void updateTopic();
-    void updateAutoDeactivate();
-protected:
-    void publishPosition(const Ogre::Vector3 & position) const;
-    void setStatusForPosition(const Ogre::Vector3 & position);
+  void updateTopic();
 
-    QCursor std_cursor_;
-    QCursor hit_cursor_;
-    rclcpp::Publisher<geometry_msgs::msg::PointStamped>::SharedPtr publisher_;
-    rclcpp::Clock::SharedPtr clock_;
+private:
+  rclcpp::Publisher<scp_message::msg::ScpCarryTask>::SharedPtr publisher_;
+  rclcpp::Subscription<scp_message::msg::ModelStateList>::SharedPtr subscriber_;
+  rclcpp::Clock::SharedPtr clock_;
 
-    rviz_common::properties::StringProperty * topic_property_;
-    rviz_common::properties::BoolProperty * auto_deactivate_property_;
-    rviz_common::properties::QosProfileProperty * qos_profile_property_;
+  rviz_common::properties::StringProperty * pub_topic_property_;
+  rviz_common::properties::QosProfileProperty * pub_qos_profile_property_;
 
-    rclcpp::QoS qos_profile_;
+  rviz_common::properties::StringProperty * sub_topic_property_;
+  rviz_common::properties::QosProfileProperty * sub_qos_profile_property_;
+
+  rclcpp::QoS qos_profile_;
+
+  int count;
+  std::vector<scp_message::msg::ModelState> dynamic_states;
+  scp_message::msg::ScpCarryTask msg;
 };
 } // namespace scp_rviz_plugin
 
