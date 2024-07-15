@@ -32,6 +32,7 @@ FIND_PACKAGES(
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/jsoncpp/include
     ${CMAKE_CURRENT_SOURCE_DIR}/include/scp_hybridastar_plan
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/scp_carry_plan
 )
 set(
     JSONCPP_SRC
@@ -46,6 +47,13 @@ file (GLOB SCP_HYBRIDASTAR_PLAN_SOURCE "src/scp_hybridastar_plan/*.cpp")
 BUILD_EXEC(
   TARGET scp_hybridastar_plan
   SOURCES ${SCP_HYBRIDASTAR_PLAN_SOURCE} ${JSONCPP_SRC}
+  DEPENDENCIES rclcpp geometry_msgs nav_msgs sensor_msgs std_msgs std_srvs tf2 tf2_geometry_msgs tf2_ros trajectory_msgs scp_message OpenCV Eigen3 Boost Threads
+)
+
+file (GLOB SCP_CARRY_PLAN_SOURCE "src/scp_carry_plan/*.cpp")
+BUILD_EXEC(
+  TARGET scp_carry_plan
+  SOURCES ${SCP_CARRY_PLAN_SOURCE} ${JSONCPP_SRC}
   DEPENDENCIES rclcpp geometry_msgs nav_msgs sensor_msgs std_msgs std_srvs tf2 tf2_geometry_msgs tf2_ros trajectory_msgs scp_message OpenCV Eigen3 Boost Threads
 )
 

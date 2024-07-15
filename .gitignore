@@ -19,3 +19,7 @@ doc/
 *.pyo
 *.swp
 *~
+
+Debug/
+.metadata/
+.settings/

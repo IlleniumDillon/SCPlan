@@ -7,6 +7,8 @@
 #include <tf2/utils.h>
 #include "grid_map.hpp"
 
+#include "astar.hpp"
+
 namespace scp
 {
 
@@ -44,10 +46,10 @@ private:
     void getNeighbors(GridNode* current_node, std::vector<GridNode*>& neighbors, std::vector<GridCost>& costs, std::vector<Pose2D>& poses);
     GridCost heuristic(GridNode* node, GridNode* goal_node);
     bool checkCollision(Pose2D& pose);
-    bool checkCollision(GridState& index, Pose2D& pose);
+    // bool checkCollision(GridState& index, Pose2D& pose);
     void kinematic(Pose2D& pose0, Pose2D& pose1, double v, double w, double dt);
 
-    // bool finalPath(GridNode* current_node, GridNode* goal_node);
+    bool finalPath(GridNode* current_node, GridNode* goal_node);
 };
 
 } // namespace scp
