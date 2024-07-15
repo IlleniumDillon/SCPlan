@@ -17,7 +17,9 @@ Panels:
   - Class: rviz_common/Tool Properties
     Expanded:
       - /2D Goal Pose1
-      - /Publish Point1
+      - /NSCPCarryGoal1
+      - /NSCPMoveGoal1
+      - /SCPMoveGoal1
     Name: Tool Properties
     Splitter Ratio: 0.5886790156364441
   - Class: rviz_common/Views
@@ -130,17 +132,7 @@ Visualization Manager:
     - Class: rviz_default_plugins/Interact
       Hide Inactive Objects: true
     - Class: rviz_default_plugins/MoveCamera
-    - Class: rviz_default_plugins/Select
     - Class: rviz_default_plugins/FocusCamera
-    - Class: rviz_default_plugins/Measure
-      Line color: 128; 128; 0
-    - Class: rviz_default_plugins/SetInitialPose
-      Topic:
-        Depth: 5
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /initialpose
     - Class: rviz_default_plugins/SetGoal
       Topic:
         Depth: 5
@@ -148,14 +140,33 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /goal_pose
-    - Class: rviz_default_plugins/PublishPoint
-      Single click: true
+    - Class: scp_rviz_plugin/NSCPCarryGoal
+      Sub Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: model_states
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: nscp_carry_goal
+    - Class: scp_rviz_plugin/NSCPMoveGoal
       Topic:
         Depth: 5
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /clicked_point
+        Value: nscp_goal
+    - Class: scp_rviz_plugin/SCPMoveGoal
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: scp_goal
   Transformation:
     Current:
       Class: rviz_default_plugins/TF
