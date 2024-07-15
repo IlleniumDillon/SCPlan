@@ -1,0 +1,28 @@
+<library path="scp_rviz_plugin">
+    <class
+        name="scp_rviz_plugin/NSCPMoveGoal"
+        type="scp_rviz_plugin::NSCPMoveGoal"
+        base_class_type="rviz_common::Tool">
+        <description>
+            This tool allows you to move the robot to a goal position (not considering scene coupling).
+        </description>
+    </class>
+
+    <class 
+        name="scp_rviz_plugin/NSCPCarryGoal"
+        type="scp_rviz_plugin::NSCPCarryGoal"
+        base_class_type="rviz_common::Tool">
+        <description>
+            This tool allows you to move the robot to a goal position while carrying an object (considering scene coupling).
+        </description>
+    </class>
+
+    <class 
+        name="scp_rviz_plugin/SCPMoveGoal"
+        type="scp_rviz_plugin::SCPMoveGoal"
+        base_class_type="rviz_common::Tool">
+        <description>
+            This tool allows you to move the robot to a goal position (considering scene coupling).
+        </description>
+    </class>
+</library>
