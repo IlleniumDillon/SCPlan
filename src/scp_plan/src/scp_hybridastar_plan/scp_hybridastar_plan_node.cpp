@@ -14,7 +14,7 @@ SCPHAPlanNode::SCPHAPlanNode()
     hybrid_astar_.config(agent_v, agent_w, agent_dt, 2, 3);
 
     sub_goal_ = this->create_subscription<geometry_msgs::msg::PoseStamped>
-        ("goal_pose", 1, std::bind(&SCPHAPlanNode::goalCallback, this, std::placeholders::_1));
+        ("nscp_goal", 1, std::bind(&SCPHAPlanNode::goalCallback, this, std::placeholders::_1));
     pub_path_ = this->create_publisher<nav_msgs::msg::Path>("path", 1);
     RCLCPP_INFO(this->get_logger(), "SCP Hybrid A* Plan Node has been started.");
 }
