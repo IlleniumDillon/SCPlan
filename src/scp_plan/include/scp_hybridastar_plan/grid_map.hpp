@@ -47,7 +47,7 @@ public:
     bool** gridMapOccupied = nullptr;
     // double** gridMapDistance = nullptr;
     std::set<int>** gridMapCollision = nullptr;
-    GridNode*** gridThetaMap = nullptr;
+    // GridNode*** gridThetaMap = nullptr;
 
     double minX = 0, minY = 0, maxX = 0, maxY = 0;
     double positionResolution = 0;
@@ -77,8 +77,8 @@ public:
     GridState operator()(GridNodeIndex &index);
     GridState operator()(int x, int y);
 
-    GridState operator()(int x, int y, int z);
-    GridState operator[](Pose2D &pose);
+    // GridState operator()(int x, int y, int z);
+    // GridState operator[](Pose2D &pose);
 
     void toMsg(nav_msgs::msg::OccupancyGrid& msg);
 };

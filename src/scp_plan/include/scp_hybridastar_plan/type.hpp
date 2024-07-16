@@ -102,6 +102,16 @@ struct PlanResult
     std::vector<Pose2D> path;
 };
 
+typedef std::pair<bool, Pose2D> CarryStep;
+struct CarryPlanResult
+{
+    bool success = false;
+    int iterations = 0;
+    double planTime = 0;
+    double cost = 0;
+    std::vector<CarryStep> path;
+};
+
 } // namespace scp
 
 #endif // TYPE_HPP

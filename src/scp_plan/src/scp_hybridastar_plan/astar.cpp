@@ -103,38 +103,38 @@ void AStarImpl::plan(Pose2D &start_pose, Pose2D &goal_pose)
 
 void AStarImpl::getNeighbors(GridNode *current_node, std::vector<GridNode *> &neighbors, std::vector<GridCost> &costs)
 {
-    neighbors.clear();
-    costs.clear();
+    // neighbors.clear();
+    // costs.clear();
 
-    GridState cur = grid_map[current_node->pose];
-    for (int i = -1; i <= 1; i++)
-    {
-        for (int j = -1; j <= 1; j++)
-        {
-            if (i == 0 && j == 0)
-            {
-                continue;
-            }
-            int x = cur.node->index.x + i;
-            int y = cur.node->index.y + j;
-            GridState next = grid_map(x, y, cur.node->index.z);
-            if (next.node == nullptr)
-            {
-                continue;
-            }   
-            if (next.node->search_info.state == GridNodeState::IN_CLOSESET)
-            {
-                continue;
-            }
-            if (checkCollision(next.node->pose))
-            {
-                continue;
-            }
-            neighbors.push_back(next.node);
-            GridCost cost = heuristic(current_node, next.node);
-            costs.push_back(cost);
-        }
-    }
+    // GridState cur = grid_map[current_node->pose];
+    // for (int i = -1; i <= 1; i++)
+    // {
+    //     for (int j = -1; j <= 1; j++)
+    //     {
+    //         if (i == 0 && j == 0)
+    //         {
+    //             continue;
+    //         }
+    //         int x = cur.node->index.x + i;
+    //         int y = cur.node->index.y + j;
+    //         GridState next = grid_map(x, y, cur.node->index.z);
+    //         if (next.node == nullptr)
+    //         {
+    //             continue;
+    //         }   
+    //         if (next.node->search_info.state == GridNodeState::IN_CLOSESET)
+    //         {
+    //             continue;
+    //         }
+    //         if (checkCollision(next.node->pose))
+    //         {
+    //             continue;
+    //         }
+    //         neighbors.push_back(next.node);
+    //         GridCost cost = heuristic(current_node, next.node);
+    //         costs.push_back(cost);
+    //     }
+    // }
 }
 
 GridCost AStarImpl::heuristic(GridNode *node, GridNode *goal_node)
