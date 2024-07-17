@@ -27,6 +27,7 @@ public:
     std::vector<Element> obstacles;
     Element agent;
 
+    scp_message::msg::ScpCarryTask task;
     CarryPlanResult plan_result;
 public:
     void config(double v, double w, double dt);

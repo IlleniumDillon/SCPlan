@@ -43,14 +43,29 @@ set(
     ${CMAKE_SOURCE_DIR}/Thirdparty/jsoncpp/src/lib_json/json_valueiterator.inl
 )
 
-file (GLOB SCP_HYBRIDASTAR_PLAN_SOURCE "src/scp_hybridastar_plan/*.cpp")
+file (GLOB SCP_HYBRIDASTAR_PLAN_SOURCE 
+  "src/scp_hybridastar_plan/astar.cpp"
+  "src/scp_hybridastar_plan/element.cpp"
+  "src/scp_hybridastar_plan/grid_map.cpp"
+  "src/scp_hybridastar_plan/hybrid_astar.cpp"
+  "src/scp_hybridastar_plan/scp_hybridastar_plan_main.cpp"
+  "src/scp_hybridastar_plan/scp_hybridastar_plan_node.cpp"
+)
 BUILD_EXEC(
   TARGET scp_hybridastar_plan
   SOURCES ${SCP_HYBRIDASTAR_PLAN_SOURCE} ${JSONCPP_SRC}
   DEPENDENCIES rclcpp geometry_msgs nav_msgs sensor_msgs std_msgs std_srvs tf2 tf2_geometry_msgs tf2_ros trajectory_msgs scp_message OpenCV Eigen3 Boost Threads
 )
 
-file (GLOB SCP_CARRY_PLAN_SOURCE "src/scp_carry_plan/*.cpp")
+file (GLOB SCP_CARRY_PLAN_SOURCE
+  "src/scp_hybridastar_plan/astar.cpp"
+  "src/scp_hybridastar_plan/element.cpp"
+  "src/scp_hybridastar_plan/grid_map.cpp"
+  "src/scp_hybridastar_plan/hybrid_astar.cpp"
+  "src/scp_carry_plan/carry_plan.cpp"
+  "src/scp_carry_plan/scp_carry_plan_main.cpp"
+  "src/scp_carry_plan/scp_carry_plan_node.cpp"
+)
 BUILD_EXEC(
   TARGET scp_carry_plan
   SOURCES ${SCP_CARRY_PLAN_SOURCE} ${JSONCPP_SRC}

@@ -184,3 +184,75 @@ bool scp::Element::isCollision(Element &other)
     }
     return false;
 }
+
+double point3Cross(Point &O, Point &A, Point &B)
+{
+    return (A.x - O.x) * (B.y - O.y) - (A.y - O.y) * (B.x - O.x);
+}
+
+std::vector<Point> bunghole(std::vector<Point> &points)
+{
+    int n = points.size(), k = 0;
+    if (n <= 3) return points;
+    std::vector<Point> H(2*n);
+    std::sort(points.begin(), points.end(), [](Point& p1, Point& p2){
+        return p1.x < p2.x || (p1.x == p2.x && p1.y < p2.y);
+    });
+
+    for (int i = 0; i < n; i++)
+    {
+        while (k >= 2 && point3Cross(H[k-2],H[k-1],points[i]) <= 0) k--;
+        H[k++] = points[i];
+    }
+
+    for (int i = n-2, t = k+1; i >= 0; i--)
+    {
+        while (k >= t && point3Cross(H[k-2],H[k-1],points[i]) <= 0) k--;
+        H[k++] = points[i];
+    }
+
+    H.resize(k-1);
+
+    return H;
+}
+
+Element scp::unionElement(Element& major, Element& minor)
+{
+    Element temp;
+    temp.id = major.id;
+    temp.pose = major.pose;
+
+    std::vector<Point> points;
+    points.insert(points.end(), major.currentVertices.begin(), major.currentVertices.end());
+    points.insert(points.end(), minor.currentVertices.begin(), minor.currentVertices.end());
+    for(int i = 0; i < points.size(); i++)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("union"), "%f,%f", points[i].x,points[i].y);
+    }
+
+    temp.currentVertices = bunghole(points);
+    temp.originVertices.resize(temp.currentVertices.size());
+    for (int i = 0; i < temp.currentVertices.size(); i++)
+    {
+        temp.originVertices[i].x = -(temp.pose.x * std::cos(temp.pose.theta) + 
+                                    temp.pose.y * std::sin(temp.pose.theta) -
+                                    temp.currentVertices[i].x * std::cos(temp.pose.theta) -
+                                    temp.currentVertices[i].y * std::sin(temp.pose.theta));
+        temp.originVertices[i].y = temp.pose.x * std::sin(temp.pose.theta) - 
+                                    temp.pose.y * std::cos(temp.pose.theta) -
+                                    temp.currentVertices[i].x * std::sin(temp.pose.theta) +
+                                    temp.currentVertices[i].y * std::cos(temp.pose.theta);
+        // RCLCPP_INFO(rclcpp::get_logger("union"), "%f,%f", temp.originVertices[i].x,temp.originVertices[i].y);
+    }
+    for (int i = 0; i < temp.currentVertices.size(); i++)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("union"), "%f,%f", temp.currentVertices[i].x,temp.currentVertices[i].y);
+    }
+    temp.updatePose(major.pose);
+    for (int i = 0; i < temp.currentVertices.size(); i++)
+    {
+        RCLCPP_INFO(rclcpp::get_logger("union"), "%f,%f", temp.currentVertices[i].x,temp.currentVertices[i].y);
+    }
+
+    return temp;
+}

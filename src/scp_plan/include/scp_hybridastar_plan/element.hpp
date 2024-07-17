@@ -39,6 +39,8 @@ public:
     bool isCollision(Element& other);
 };
 
+Element unionElement(Element& major, Element& minor);
+
 } // namespace scp
 
 #endif // ELEMENT_HPP
