@@ -25,6 +25,9 @@ void HybridAStar::config(double v, double w, double dt, int v_step, int w_step)
     control_list.push_back(
                 std::make_pair(v, w)
             );
+    control_list.push_back(
+                std::make_pair(-v, 0)
+            );
 
     final_control_list.clear();
     final_control_list.push_back(
@@ -62,7 +65,7 @@ void scp::HybridAStar::updateElement(std::vector<Element> &obstacles, Element &a
 
 void HybridAStar::plan(GridMap &grid_map, Pose2D &start_pose, Pose2D &goal_pose, Element &agent)
 {
-    plan_result = PlanResult();
+    // plan_result = PlanResult();
     this->grid_map = grid_map;
     search_mode = 0;
     auto timeStart = std::chrono::steady_clock::now();
@@ -74,6 +77,8 @@ void HybridAStar::plan(GridMap &grid_map, Pose2D &start_pose, Pose2D &goal_pose,
 
 void HybridAStar::plan(Pose2D &start_pose, Pose2D &goal_pose)
 {
+    plan_result = PlanResult();
+
     auto start_index = grid_map(start_pose);
     if (start_index.node == nullptr)
     {
@@ -346,6 +351,7 @@ void HybridAStar::getNeighbors(GridNode *current_node, std::vector<GridNode *> &
 
 void HybridAStar::clear()
 {
+    // plan_result = PlanResult();
     for (auto node : close_set)
     {
         node->search_info = GridNodeSearchInfo();

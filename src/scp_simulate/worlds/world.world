@@ -587,7 +587,7 @@
             <script>
               <!-- <uri>file://media/materials/scripts/gazebo.material</uri>
                             <name>Gazebo/Green</name> -->
-              <uri>/home/dillon/SCPlan_ros2/src/scp_simulate/materials/agent.material</uri>
+              <uri>/home/zj/Desktop/SCPlan_ros2/src/scp_simulate/materials/agent.material</uri>
               <name>SCP/agent</name>
             </script>
             <shader type="pixel">

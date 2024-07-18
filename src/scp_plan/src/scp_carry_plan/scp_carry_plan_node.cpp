@@ -220,8 +220,14 @@ void SCPCarryPlanNode::modelStateListCallback(const scp_message::msg::ModelState
 
 void SCPCarryPlanNode::goalCallback(const scp_message::msg::ScpCarryTask::SharedPtr msg)
 {
+    // RCLCPP_INFO(this->get_logger(), "Agent anchor 0: (%f, %f)", agent_.originAnchors[0].x, agent_.originAnchors[0].y);
     carry_plan_.updateElement(dynamic_elements_, static_elements_, agent_);
     carry_plan_.plan(grid_map_, *msg);
+    if (carry_plan_.plan_result.success)
+    {
+        carry_plan_.toMsg(path_msg_);
+        pub_path_->publish(path_msg_);
+    }
 }
 
 void SCPCarryPlanNode::timerCallback()

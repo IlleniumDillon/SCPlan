@@ -185,6 +185,31 @@ bool scp::Element::isCollision(Element &other)
     return false;
 }
 
+Element &Element::operator=(const Element &other)
+{
+    this->id = other.id;
+    this->pose = other.pose;
+    this->originVertices = other.originVertices;
+    this->currentVertices = other.currentVertices;
+    this->originAnchors = other.originAnchors;
+    this->currentAnchors = other.currentAnchors;
+    this->originCollisionVertices = other.originCollisionVertices;
+    this->currentCollisionVertices = other.currentCollisionVertices;    
+    return *this;
+}
+
+scp::Element::Element(const Element &other)
+{
+    this->id = other.id;
+    this->pose = other.pose;
+    this->originVertices = other.originVertices;
+    this->currentVertices = other.currentVertices;
+    this->originAnchors = other.originAnchors;
+    this->currentAnchors = other.currentAnchors;
+    this->originCollisionVertices = other.originCollisionVertices;
+    this->currentCollisionVertices = other.currentCollisionVertices;
+}
+
 double point3Cross(Point &O, Point &A, Point &B)
 {
     return (A.x - O.x) * (B.y - O.y) - (A.y - O.y) * (B.x - O.x);
@@ -225,10 +250,10 @@ Element scp::unionElement(Element& major, Element& minor)
     std::vector<Point> points;
     points.insert(points.end(), major.currentVertices.begin(), major.currentVertices.end());
     points.insert(points.end(), minor.currentVertices.begin(), minor.currentVertices.end());
-    for(int i = 0; i < points.size(); i++)
-    {
-        RCLCPP_INFO(rclcpp::get_logger("union"), "%f,%f", points[i].x,points[i].y);
-    }
+    // for(int i = 0; i < points.size(); i++)
+    // {
+    //     RCLCPP_INFO(rclcpp::get_logger("union"), "%f,%f", points[i].x,points[i].y);
+    // }
 
     temp.currentVertices = bunghole(points);
     temp.originVertices.resize(temp.currentVertices.size());
@@ -244,15 +269,15 @@ Element scp::unionElement(Element& major, Element& minor)
                                     temp.currentVertices[i].y * std::cos(temp.pose.theta);
         // RCLCPP_INFO(rclcpp::get_logger("union"), "%f,%f", temp.originVertices[i].x,temp.originVertices[i].y);
     }
-    for (int i = 0; i < temp.currentVertices.size(); i++)
-    {
-        RCLCPP_INFO(rclcpp::get_logger("union"), "%f,%f", temp.currentVertices[i].x,temp.currentVertices[i].y);
-    }
+    // for (int i = 0; i < temp.currentVertices.size(); i++)
+    // {
+    //     RCLCPP_INFO(rclcpp::get_logger("union"), "%f,%f", temp.currentVertices[i].x,temp.currentVertices[i].y);
+    // }
     temp.updatePose(major.pose);
-    for (int i = 0; i < temp.currentVertices.size(); i++)
-    {
-        RCLCPP_INFO(rclcpp::get_logger("union"), "%f,%f", temp.currentVertices[i].x,temp.currentVertices[i].y);
-    }
+    // for (int i = 0; i < temp.currentVertices.size(); i++)
+    // {
+    //     RCLCPP_INFO(rclcpp::get_logger("union"), "%f,%f", temp.currentVertices[i].x,temp.currentVertices[i].y);
+    // }
 
     return temp;
 }

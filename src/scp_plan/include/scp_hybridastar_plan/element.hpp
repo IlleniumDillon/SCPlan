@@ -37,6 +37,9 @@ public:
     void getDispersed(std::vector<std::pair<int,int>> &dispersed, double resolution, int oriX, int oriY);
     void getCollision(std::vector<std::pair<int,int>> &collision, double resolution, int oriX, int oriY);
     bool isCollision(Element& other);
+
+    Element& operator=(const Element& other);
+    Element(const Element& other);
 };
 
 Element unionElement(Element& major, Element& minor);

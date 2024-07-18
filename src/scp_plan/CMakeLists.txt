@@ -11,7 +11,9 @@ endif()
 
 FIND_PACKAGES(
   ament_cmake 
+  ament_cmake_python 
   rclcpp  
+  rclpy
   geometry_msgs
   nav_msgs
   sensor_msgs
@@ -70,6 +72,14 @@ BUILD_EXEC(
   TARGET scp_carry_plan
   SOURCES ${SCP_CARRY_PLAN_SOURCE} ${JSONCPP_SRC}
   DEPENDENCIES rclcpp geometry_msgs nav_msgs sensor_msgs std_msgs std_srvs tf2 tf2_geometry_msgs tf2_ros trajectory_msgs scp_message OpenCV Eigen3 Boost Threads
+)
+
+file (GLOB SCP_PYTHON_SOURCE
+  "scripts/*.py"
+)
+install(
+  PROGRAMS ${SCP_PYTHON_SOURCE}
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
