@@ -2,3 +2,4 @@ ros2 launch scp_simulate scp_world_only.launch.py # To view the scene
 
 ros2 launch scp_simulate scp_hybridastar_plan.launch.py # To view the scene & test HybridAStar plan 
 ros2 launch scp_simulate scp_carry_plan.launch.py # To view the scene & test carry plan 
+ros2 launch scp_simulate scp_plan.launch.py # To view the scene & test scene coupling plan 

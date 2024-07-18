@@ -35,6 +35,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/jsoncpp/include
     ${CMAKE_CURRENT_SOURCE_DIR}/include/scp_hybridastar_plan
     ${CMAKE_CURRENT_SOURCE_DIR}/include/scp_carry_plan
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/scp_plan
 )
 set(
     JSONCPP_SRC
@@ -71,6 +72,22 @@ file (GLOB SCP_CARRY_PLAN_SOURCE
 BUILD_EXEC(
   TARGET scp_carry_plan
   SOURCES ${SCP_CARRY_PLAN_SOURCE} ${JSONCPP_SRC}
+  DEPENDENCIES rclcpp geometry_msgs nav_msgs sensor_msgs std_msgs std_srvs tf2 tf2_geometry_msgs tf2_ros trajectory_msgs scp_message OpenCV Eigen3 Boost Threads
+)
+
+file (GLOB SCP_PLAN_SOURCE
+  "src/scp_hybridastar_plan/astar.cpp"
+  "src/scp_hybridastar_plan/element.cpp"
+  "src/scp_hybridastar_plan/grid_map.cpp"
+  "src/scp_hybridastar_plan/hybrid_astar.cpp"
+  "src/scp_carry_plan/carry_plan.cpp"
+  "src/scp_plan/scp_plan_main.cpp"
+  "src/scp_plan/scp_plan_node.cpp"
+  "src/scp_plan/scp_plan.cpp"
+)
+BUILD_EXEC(
+  TARGET scp_plan
+  SOURCES ${SCP_PLAN_SOURCE} ${JSONCPP_SRC}
   DEPENDENCIES rclcpp geometry_msgs nav_msgs sensor_msgs std_msgs std_srvs tf2 tf2_geometry_msgs tf2_ros trajectory_msgs scp_message OpenCV Eigen3 Boost Threads
 )
 
