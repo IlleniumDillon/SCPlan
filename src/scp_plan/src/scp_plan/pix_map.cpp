@@ -21,11 +21,27 @@ PixMap::PixMap(GridMap &grid_map)
     this->maxY = grid_map.maxY;
     this->minX = grid_map.minX;
     this->minY = grid_map.minY;
-    pix_map = new int *[height];
-    for (int i = 0; i < height; i++)
+    // pix_map = new int *[height];
+    // for (int i = 0; i < height; i++)
+    // {
+    //     pix_map[i] = new int[width];
+    //     for (int j = 0; j < width; j++)
+    //     {
+    //         if (grid_map(i,j).occupied)
+    //         {
+    //             pix_map[i][j] = PIX_OCCUPIED;
+    //         }
+    //         else
+    //         {
+    //             pix_map[i][j] = PIX_FREE;
+    //         }
+    //     }
+    // }
+    pix_map = new int *[width];
+    for (int i = 0; i < width; i++)
     {
-        pix_map[i] = new int[width];
-        for (int j = 0; j < width; j++)
+        pix_map[i] = new int[height];
+        for (int j = 0; j < height; j++)
         {
             if (grid_map(i,j).occupied)
             {
@@ -58,11 +74,20 @@ PixMap::PixMap(const PixMap &pix_map)
     this->minX = pix_map.minX;
     this->minY = pix_map.minY;
 
-    this->pix_map = new int *[height];
-    for (int i = 0; i < height; i++)
+    // this->pix_map = new int *[height];
+    // for (int i = 0; i < height; i++)
+    // {
+    //     this->pix_map[i] = new int[width];
+    //     for (int j = 0; j < width; j++)
+    //     {
+    //         this->pix_map[i][j] = pix_map.pix_map[i][j];
+    //     }
+    // }
+    this->pix_map = new int *[width];
+    for (int i = 0; i < width; i++)
     {
-        this->pix_map[i] = new int[width];
-        for (int j = 0; j < width; j++)
+        this->pix_map[i] = new int[height];
+        for (int j = 0; j < height; j++)
         {
             this->pix_map[i][j] = pix_map.pix_map[i][j];
         }
@@ -92,11 +117,20 @@ PixMap &PixMap::operator=(const PixMap &pix_map)
     this->minX = pix_map.minX;
     this->minY = pix_map.minY;
 
-    this->pix_map = new int *[height];
-    for (int i = 0; i < height; i++)
+    // this->pix_map = new int *[height];
+    // for (int i = 0; i < height; i++)
+    // {
+    //     this->pix_map[i] = new int[width];
+    //     for (int j = 0; j < width; j++)
+    //     {
+    //         this->pix_map[i][j] = pix_map.pix_map[i][j];
+    //     }
+    // }
+    this->pix_map = new int *[width];
+    for (int i = 0; i < width; i++)
     {
-        this->pix_map[i] = new int[width];
-        for (int j = 0; j < width; j++)
+        this->pix_map[i] = new int[height];
+        for (int j = 0; j < height; j++)
         {
             this->pix_map[i][j] = pix_map.pix_map[i][j];
         }
@@ -134,11 +168,27 @@ void PixMap::convertGridMap(GridMap &grid_map)
     this->minX = grid_map.minX;
     this->minY = grid_map.minY;
 
-    pix_map = new int *[height];
-    for (int i = 0; i < height; i++)
+    // pix_map = new int *[height];
+    // for (int i = 0; i < height; i++)
+    // {
+    //     pix_map[i] = new int[width];
+    //     for (int j = 0; j < width; j++)
+    //     {
+    //         if (grid_map(i,j).occupied)
+    //         {
+    //             pix_map[i][j] = PIX_OCCUPIED;
+    //         }
+    //         else
+    //         {
+    //             pix_map[i][j] = PIX_FREE;
+    //         }
+    //     }
+    // }
+    pix_map = new int *[width];
+    for (int i = 0; i < width; i++)
     {
-        pix_map[i] = new int[width];
-        for (int j = 0; j < width; j++)
+        pix_map[i] = new int[height];
+        for (int j = 0; j < height; j++)
         {
             if (grid_map(i,j).occupied)
             {
@@ -158,7 +208,7 @@ int *PixMap::operator()(int x, int y)
     {
         return nullptr;
     }
-    return &pix_map[y][x];
+    return &pix_map[x][y];
 }
 
 int *PixMap::operator()(double x, double y)
@@ -168,9 +218,9 @@ int *PixMap::operator()(double x, double y)
 
 void PixMap::erosion(int erosion_size)
 {
-    for (int i = 0; i < height; i++)
+    for (int i = 0; i < width; i++)
     {
-        for (int j = 0; j < width; j++)
+        for (int j = 0; j < height; j++)
         {
             if (pix_map[i][j] != PIX_OCCUPIED)
             {
@@ -180,7 +230,7 @@ void PixMap::erosion(int erosion_size)
             {
                 for (int l = -erosion_size; l <= erosion_size; l++)
                 {
-                    if (i + k < 0 || i + k >= height || j + l < 0 || j + l >= width)
+                    if (i + k < 0 || i + k >= width || j + l < 0 || j + l >= height)
                     {
                         continue;
                     }
@@ -192,9 +242,9 @@ void PixMap::erosion(int erosion_size)
             }
         }
     }
-    for (int i = 0; i < height; i++)
+    for (int i = 0; i < width; i++)
     {
-        for (int j = 0; j < width; j++)
+        for (int j = 0; j < height; j++)
         {
             if (pix_map[i][j] == PIX_TEMP)
             {
@@ -206,9 +256,9 @@ void PixMap::erosion(int erosion_size)
 
 void PixMap::dilation(int dilation_size)
 {
-    for (int i = 0; i < height; i++)
+    for (int i = 0; i < width; i++)
     {
-        for (int j = 0; j < width; j++)
+        for (int j = 0; j < height; j++)
         {
             if (pix_map[i][j] != PIX_FREE)
             {
@@ -218,7 +268,7 @@ void PixMap::dilation(int dilation_size)
             {
                 for (int l = -dilation_size; l <= dilation_size; l++)
                 {
-                    if (i + k < 0 || i + k >= height || j + l < 0 || j + l >= width)
+                    if (i + k < 0 || i + k >= width || j + l < 0 || j + l >= height)
                     {
                         continue;
                     }
@@ -230,9 +280,9 @@ void PixMap::dilation(int dilation_size)
             }
         }
     }
-    for (int i = 0; i < height; i++)
+    for (int i = 0; i < width; i++)
     {
-        for (int j = 0; j < width; j++)
+        for (int j = 0; j < height; j++)
         {
             if (pix_map[i][j] == PIX_TEMP)
             {
@@ -257,30 +307,31 @@ void PixMap::closing(int size)
 void PixMap::labelConnectDomain()
 {
     domain_num = 0;
-    // int close_cont = 0;
 
-    for (int i = 0; i < height; i++)
+    for (int i = 0; i < width; i++)
     {
-        for (int j = 0; j < width; j++)
+        for (int j = 0; j < height; j++)
         {
             if (pix_map[i][j] != PIX_FREE)
             {
                 continue;
             }
             domain_num++;
-            // RCLCPP_INFO(rclcpp::get_logger("scp_plan"), "Label connect domain: %d.", domain_num);
+            int x_sum = 0;
+            int y_sum = 0;
+            int count = 0;
             std::queue<std::pair<int, int>> q;
             q.push(std::make_pair(i, j));
             while (!q.empty())
             {
                 std::pair<int, int> p = q.front();
                 q.pop();
-                int x = p.second;
-                int y = p.first;
-                pix_map[y][x] = domain_num - 1;
-                // close_cont++;
-                // RCLCPP_INFO(rclcpp::get_logger("scp_plan"), "queue size: %d, %d.", q.size(), close_cont);
-                // showPixMap();
+                int x = p.first;
+                int y = p.second;
+                x_sum += x;
+                y_sum += y;
+                count++;
+                pix_map[x][y] = domain_num - 1;
 
                 for (int k = -1; k <= 1; k++)
                 {
@@ -297,14 +348,19 @@ void PixMap::labelConnectDomain()
                         {
                             continue;
                         }
-                        if (pix_map[y + k][x + l] == PIX_FREE)
+                        if (pix_map[x + l][y + k] == PIX_FREE)
                         {
-                            pix_map[y + k][x + l] = PIX_OPENING;
-                            q.push(std::make_pair(y + k, x + l));
+                            pix_map[x + l][y + k] = PIX_OPENING;
+                            q.push(std::make_pair(x + l, y + k));
                         }
                     }
                 }
             }
+            // get domain center
+            Point center;
+            center.x = (double)x_sum / count * resolution + minX;
+            center.y = (double)y_sum / count * resolution + minY;
+            domain_center.push_back(center);
         }
     }
 }
@@ -324,9 +380,9 @@ void PixMap::showPixMap()
         color_list.push_back(color);
     }
 
-    for (int i = 0; i < height; i++)
+    for (int i = 0; i < width; i++)
     {
-        for (int j = 0; j < width; j++)
+        for (int j = 0; j < height; j++)
         {
             if (pix_map[i][j] == PIX_OCCUPIED)
             {
@@ -342,6 +398,12 @@ void PixMap::showPixMap()
             }
         }
     }
+
+    for (int i = 0; i < domain_center.size(); i++)
+    {
+        cv::circle(img, cv::Point((domain_center[i].x - minX) / resolution, (domain_center[i].y - minY) / resolution), 3, cv::Scalar(0, 0, 255), -1);
+    }
+
     cv::resize(img, img, cv::Size(800, 800), 0, 0, cv::INTER_NEAREST);
     cv::imshow("PixMap", img);
     cv::waitKey(0);

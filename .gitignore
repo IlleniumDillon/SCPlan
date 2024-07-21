@@ -23,3 +23,5 @@ doc/
 Debug/
 .metadata/
 .settings/
+
+.VSCodeCounter/

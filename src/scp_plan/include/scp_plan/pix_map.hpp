@@ -34,6 +34,7 @@ public:
     double resolution;
     double minX = 0, minY = 0, maxX = 0, maxY = 0;
     int **pix_map;
+    std::vector<Point> domain_center;
 public:
     void convertGridMap(GridMap& grid_map);
     int* operator()(int x, int y);

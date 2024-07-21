@@ -55,7 +55,29 @@ void SCPPlan::plan(GridMap &grid_map, Pose2D &task)
     }
     else
     {
-
+        this->connect_graph.buildGraph(dynamic_elements);
+        for (int i = 0; i < connect_graph.nodes.size(); i++)
+        {
+            RCLCPP_INFO(rclcpp::get_logger("scp_plan"), "Node %d:", connect_graph.nodes[i].index);
+            for (auto &e : connect_graph.nodes[i].edges)
+            {
+                int neighbor = connect_graph.edges[e].getOtherIndex(connect_graph.nodes[i].index);
+                RCLCPP_INFO(rclcpp::get_logger("scp_plan"), "Edge %d: %d", e, neighbor);
+            }
+        }
+        ConnectRoutes routes;
+        Point start_r;
+        start_r.x = agent.pose.x;
+        start_r.y = agent.pose.y;
+        Point goal_r;
+        goal_r.x = task.x;
+        goal_r.y = task.y;
+        connect_graph.dijkstra(start_r, goal_r, routes);
+        for (auto &route : routes)
+        {
+            RCLCPP_INFO(rclcpp::get_logger("scp_plan"), "Route: [%f,%f] -%d-> [%f,%f]", 
+                route.start.x, route.start.y, route.id, route.end.x, route.end.y);
+        }
     }
 
     auto end = std::chrono::steady_clock::now();
