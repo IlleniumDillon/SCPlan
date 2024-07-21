@@ -21,7 +21,7 @@ from launch.substitutions import (EnvironmentVariable, FindExecutable,
 def generate_launch_description():
     package_name = "scp_simulate"
     package_share_directory = get_package_share_directory(package_name)
-    gazebo_world_file = os.path.join(package_share_directory, "worlds", "world.world")
+    gazebo_world_file = os.path.join(package_share_directory, "worlds", "world2.world")
 
     ld = LaunchDescription()
 

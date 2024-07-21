@@ -1,0 +1,248 @@
+<sdf version='1.7'>
+    <world name='default' xmlns:xacro="http://wiki.ros.org/xacro">
+        <!-- <xacro:include filename="./macros/math.xacro" /> -->
+        <!-- <xacro:include filename="./macros/inertia.xacro" /> -->
+        <xacro:include filename="agent.xacro" />
+        <xacro:include filename="good.xacro" />
+        <xacro:include filename="obstacle.xacro" />
+        <xacro:include filename="wall.xacro" />
+        <xacro:include filename="light.xacro" />
+        <xacro:include filename="ground_plane.xacro" />
+        <xacro:property name="PI" value="3.1415926535897932384626433832795" />
+
+        <gravity>0 0 -9.8</gravity>
+        <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
+        <atmosphere type='adiabatic'/>
+        <physics type='ode'>
+            <max_step_size>0.001</max_step_size>
+            <real_time_factor>1</real_time_factor>
+            <real_time_update_rate>1000</real_time_update_rate>
+        </physics>
+        <scene>
+            <ambient>0.4 0.4 0.4 1</ambient>
+            <background>0.7 0.7 0.7 1</background>
+            <shadows>1</shadows>
+        </scene>
+        <wind/>
+        <spherical_coordinates>
+            <surface_model>EARTH_WGS84</surface_model>
+            <latitude_deg>0</latitude_deg>
+            <longitude_deg>0</longitude_deg>
+            <elevation>0</elevation>
+            <heading_deg>0</heading_deg>
+        </spherical_coordinates>
+        <gui fullscreen='0'>
+            <camera name='user_camera'>
+                <pose>2.22523 -0.794145 7.51233 0 1.28926 1.81302</pose>
+                <view_controller>orbit</view_controller>
+                <projection_type>perspective</projection_type>
+            </camera>
+            <grid>
+                <cell_size>0.5 0.5</cell_size>
+                <cell_count>20 20</cell_count>
+            </grid>
+        </gui>
+        <xacro:defineLight />
+        <xacro:defineGround />
+
+        <xacro:putWall name="wall10_0" x="0" y="5.5" yaw="0" l="10" w="1" h="1" />
+        <xacro:putWall name="wall10_1" x="0" y="-5.5" yaw="0" l="10" w="1" h="1" />
+        <xacro:putWall name="wall12_2" x="5.5" y="0" yaw="${PI / 2}" l="12" w="1" h="1" />
+        <xacro:putWall name="wall12_3" x="-5.5" y="0" yaw="${PI / 2}" l="12" w="1" h="1" />
+
+        <xacro:putAgent name="agent_0" x="-4" y="-4" yaw="0" />
+
+        <!-- <xacro:putGood name="good_0" x="0" y="5" yaw="0" /> -->
+        <!-- <xacro:putGood name="good_0" x="-0.25" y="-3.75" yaw="0" />
+        <xacro:putGood name="good_1" x="-0.25" y="-4.25" yaw="0" /> -->
+
+        <xacro:putObstacle name="obstacle_0" x="-4.75" y="1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_1" x="-4.25" y="1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_2" x="-3.75" y="1.75" yaw="0" />
+
+        <xacro:putGood name="good_0" x="-3.25" y="1.75" yaw="0" />
+
+        <xacro:putObstacle name="obstacle_4" x="-2.75" y="1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_5" x="-2.25" y="1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_6" x="-1.75" y="1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_7" x="-1.25" y="1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_8" x="-0.75" y="1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_9" x="-0.25" y="1.75" yaw="0" />
+
+        <xacro:putGood name="good_1" x="0.25" y="1.75" yaw="0" />
+
+        <xacro:putObstacle name="obstacle_11" x="0.75" y="1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_12" x="1.25" y="1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_13" x="1.75" y="1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_14" x="2.25" y="1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_15" x="2.75" y="1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_16" x="3.25" y="1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_17" x="3.75" y="1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_18" x="4.25" y="1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_19" x="4.75" y="1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_20" x="-4.75" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_21" x="-4.25" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_22" x="-3.75" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_23" x="-3.25" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_24" x="-2.75" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_25" x="-2.25" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_26" x="-1.75" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_27" x="-1.25" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_28" x="-0.75" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_29" x="-0.25" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_30" x="0.25" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_31" x="0.75" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_32" x="1.25" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_33" x="1.75" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_34" x="2.25" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_35" x="2.75" y="-1.75" yaw="0" />
+
+        <xacro:putGood name="good_2" x="3.25" y="-1.75" yaw="0" />
+        <xacro:putGood name="good_3" x="3.75" y="-1.75" yaw="0" />
+
+        <xacro:putObstacle name="obstacle_38" x="4.25" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_39" x="4.75" y="-1.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_40" x="1.5" y="-4.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_41" x="1.5" y="-4.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_42" x="1.5" y="-3.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_43" x="1.5" y="-3.25" yaw="0" />
+
+        <xacro:putGood name="good_4" x="1.5" y="-2.75" yaw="0" />
+
+        <xacro:putObstacle name="obstacle_45" x="1.5" y="-2.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_46" x="1.5" y="-1.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_47" x="1.5" y="-0.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_48" x="1.5" y="-0.25" yaw="0" />
+
+        <xacro:putGood name="good_5" x="1.5" y="0.25" yaw="0" />
+
+        <xacro:putObstacle name="obstacle_50" x="1.5" y="0.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_51" x="1.5" y="1.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_52" x="1.5" y="2.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_53" x="1.5" y="2.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_54" x="1.5" y="3.25" yaw="0" />
+
+        <xacro:putGood name="good_6" x="1.5" y="3.75" yaw="0" />
+
+        <xacro:putObstacle name="obstacle_56" x="1.5" y="4.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_57" x="1.5" y="4.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_58" x="-1.5" y="-4.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_59" x="-1.5" y="-4.25" yaw="0" />
+
+        <xacro:putGood name="good_7" x="-1.5" y="-3.75" yaw="0" />
+        <xacro:putGood name="good_8" x="-1.5" y="-3.25" yaw="0" />
+
+        <xacro:putObstacle name="obstacle_62" x="-1.5" y="-2.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_63" x="-1.5" y="-2.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_64" x="-1.5" y="-1.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_65" x="-1.5" y="-0.75" yaw="0" />
+
+        <xacro:putGood name="good_9" x="-1.5" y="-0.25" yaw="0" />
+        <xacro:putGood name="good_10" x="-1.5" y="0.25" yaw="0" />
+
+        <xacro:putObstacle name="obstacle_68" x="-1.5" y="0.75" yaw="0" />
+        <xacro:putObstacle name="obstacle_69" x="-1.5" y="1.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_70" x="-1.5" y="2.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_71" x="-1.5" y="2.75" yaw="0" />
+
+        <xacro:putGood name="good_11" x="-1.5" y="3.25" yaw="0" />
+        <xacro:putGood name="good_12" x="-1.5" y="3.75" yaw="0" />
+
+        <xacro:putObstacle name="obstacle_74" x="-1.5" y="4.25" yaw="0" />
+        <xacro:putObstacle name="obstacle_75" x="-1.5" y="4.75" yaw="0" />
+        
+        
+
+
+        <plugin name="agent_action" filename="libgazebo_ros_agentaction.so" />
+        <plugin name="model_states" filename="libgazebo_ros_modelstate.so" >
+            <static_models>
+                wall10_0 
+                wall10_1 
+                wall12_2 
+                wall12_3 
+                obstacle_0 
+                obstacle_1 
+                obstacle_2
+                obstacle_4
+                obstacle_5
+                obstacle_6
+                obstacle_7
+                obstacle_8
+                obstacle_9
+                obstacle_11
+                obstacle_12
+                obstacle_13
+                obstacle_14
+                obstacle_15
+                obstacle_16
+                obstacle_17 
+                obstacle_18 
+                obstacle_19 
+                obstacle_20 
+                obstacle_21 
+                obstacle_22 
+                obstacle_23 
+                obstacle_24 
+                obstacle_25 
+                obstacle_26 
+                obstacle_27 
+                obstacle_28 
+                obstacle_29 
+                obstacle_30 
+                obstacle_31 
+                obstacle_32 
+                obstacle_33 
+                obstacle_34 
+                obstacle_35 
+                obstacle_38 
+                obstacle_39 
+                obstacle_40
+                obstacle_41
+                obstacle_42
+                obstacle_43
+                obstacle_45
+                obstacle_46
+                obstacle_47
+                obstacle_48
+                obstacle_50
+                obstacle_51 
+                obstacle_52
+                obstacle_53 
+                obstacle_54
+                obstacle_56
+                obstacle_57 
+                obstacle_58
+                obstacle_59
+                obstacle_62 
+                obstacle_63
+                obstacle_64 
+                obstacle_65
+                obstacle_68
+                obstacle_69
+                obstacle_70
+                obstacle_71
+                obstacle_74
+                obstacle_75
+            </static_models>
+            <dynamic_models>
+                good_0
+                good_1
+                good_2
+                good_3
+                good_4
+                good_5
+                good_6
+                good_7
+                good_8
+                good_9
+                good_10
+                good_11
+                good_12
+            </dynamic_models>
+            <agent_model>
+                agent_0 
+            </agent_model>
+        </plugin>
+    </world>
+</sdf>

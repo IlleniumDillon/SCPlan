@@ -65,7 +65,7 @@ BUILD_GAZEBO_PLUGIN(
   DEPENDENCIES rclcpp gazebo_dev gazebo_msgs gazebo_ros geometry_msgs nav_msgs sensor_msgs std_msgs std_srvs tf2 tf2_geometry_msgs tf2_ros trajectory_msgs scp_message
 )
 
-set(WORLDXACROFILE ${CMAKE_SOURCE_DIR}/worlds/world.world.xacro)
+set(WORLDXACROFILE ${CMAKE_SOURCE_DIR}/worlds/world2.world.xacro)
 GEN_XACRO(${WORLDXACROFILE})
 
 INSTALL_DIR(
