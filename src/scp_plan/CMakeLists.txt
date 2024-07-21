@@ -81,6 +81,8 @@ file (GLOB SCP_PLAN_SOURCE
   "src/scp_hybridastar_plan/grid_map.cpp"
   "src/scp_hybridastar_plan/hybrid_astar.cpp"
   "src/scp_carry_plan/carry_plan.cpp"
+  "src/scp_plan/pix_map.cpp"
+  "src/scp_plan/connect_graph.cpp"
   "src/scp_plan/scp_plan_main.cpp"
   "src/scp_plan/scp_plan_node.cpp"
   "src/scp_plan/scp_plan.cpp"
