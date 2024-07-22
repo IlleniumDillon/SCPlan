@@ -63,7 +63,7 @@ void CarryPlan::plan(GridMap &grid_map, scp_message::msg::ScpCarryTask &task)
     std::vector<Pose2D> subGoalPoses;
     std::vector<Pose2D> GoalPoses;
 
-    double agentCenterAgentDistance = sqrt(pow(this->agent.originAnchors[0].x, 2) + pow(this->agent.originAnchors[0].y, 2)) + 0.05;
+    double agentCenterAgentDistance = sqrt(pow(this->agent.originAnchors[0].x, 2) + pow(this->agent.originAnchors[0].y, 2)) + 0.2;
     // RCLCPP_INFO(rclcpp::get_logger("carry_plan"), "Agent center to agent distance: %f.", agentCenterAgentDistance);
 
     for (int i = 0; i < targetObject.originAnchors.size(); i++)

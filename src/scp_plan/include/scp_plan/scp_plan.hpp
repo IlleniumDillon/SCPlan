@@ -35,6 +35,8 @@ public:
     void updateElement(std::vector<Element>& dynamic_elements, std::vector<Element>& static_elements, Element& agent);
     void plan(GridMap& grid_map, Pose2D& task);
     void toMsg(nav_msgs::msg::Path& path_msg);
+private:
+    void planRoute(ConnectRoutes& routes, CarryPlanResult& rst);
 };
 } // namespace scp
 

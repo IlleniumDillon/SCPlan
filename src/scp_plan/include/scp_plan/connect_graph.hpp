@@ -71,7 +71,7 @@ class ConnectGraph
 {
 public:
     PixMap pix_map;
-    double radius = 0.5;
+    double radius = 0.25;
 
     std::vector<ConnectNode> nodes;
     std::vector<ConnectEdge> edges; 

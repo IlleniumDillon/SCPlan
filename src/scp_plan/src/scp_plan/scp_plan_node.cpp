@@ -22,7 +22,7 @@ void ScpPlanNode::loadConfig()
 {
     declare_parameter("scene_width", 12.0);
     declare_parameter("scene_height", 12.0);
-    declare_parameter("position_resolution", 0.05);
+    declare_parameter("position_resolution", 0.02);
     declare_parameter("yaw_step", 32);
     declare_parameter("agent_v", 0.3);
     declare_parameter("agent_w", M_PI / 8);

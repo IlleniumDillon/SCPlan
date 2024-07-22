@@ -27,6 +27,8 @@ void ConnectGraph::convertGridMap(GridMap &grid_map)
 
 void ConnectGraph::buildGraph(std::vector<Element> &dynamic_elements)
 {
+    nodes.clear();
+    edges.clear();
     // generate node according to pix_map
     for (int i = 0; i < pix_map.domain_num; i++)
     {
@@ -109,12 +111,12 @@ void ConnectGraph::dijkstra(Point start, Point goal, ConnectRoutes& path)
 
     std::multimap<double, int> open;
 
-    nodes[start_domain].position = start;
+    // nodes[start_domain].position = start;
     nodes[start_domain].g = 0;
     nodes[start_domain].state = IN_OPENSET;
     nodes[start_domain].iterator = open.insert(std::make_pair(nodes[start_domain].g, start_domain));
 
-    nodes[goal_domain].position = goal;
+    // nodes[goal_domain].position = goal;
 
     int current;
 

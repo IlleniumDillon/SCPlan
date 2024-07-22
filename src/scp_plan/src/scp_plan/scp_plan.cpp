@@ -78,6 +78,7 @@ void SCPPlan::plan(GridMap &grid_map, Pose2D &task)
             RCLCPP_INFO(rclcpp::get_logger("scp_plan"), "Route: [%f,%f] -%d-> [%f,%f]", 
                 route.start.x, route.start.y, route.id, route.end.x, route.end.y);
         }
+        planRoute(routes, plan_result);
     }
 
     auto end = std::chrono::steady_clock::now();
@@ -101,4 +102,56 @@ void SCPPlan::toMsg(nav_msgs::msg::Path &path_msg)
         path_msg.poses.push_back(pose_msg);
         // RCLCPP_INFO(rclcpp::get_logger("carry_plan"), "Path pose: (%f, %f, %f).", pose.second.x, pose.second.y, pose.second.theta);
     }
+}
+
+void SCPPlan::planRoute(ConnectRoutes &routes, CarryPlanResult &rst)
+{
+    for (auto &route : routes)
+    {
+        carry_plan.config(v, w, dt);
+        carry_plan.updateElement(dynamic_elements, static_elements, agent);
+        scp_message::msg::ScpCarryTask task_c;
+        task_c.who = route.id;
+        task_c.going_to.position.x = route.end.x;
+        task_c.going_to.position.y = route.end.y;
+        double yaw = obstacles[route.id].pose.theta;
+        tf2::Quaternion q;
+        q.setRPY(0, 0, yaw);
+        task_c.going_to.orientation = tf2::toMsg(q);
+
+        carry_plan.plan(grid_map, task_c);
+        if (carry_plan.plan_result.success)
+        {
+            rst.cost += carry_plan.plan_result.cost;
+            rst.iterations += carry_plan.plan_result.iterations;
+            rst.path.insert(rst.path.end(), carry_plan.plan_result.path.begin(), carry_plan.plan_result.path.end());
+        }
+        else
+        {
+            RCLCPP_ERROR(rclcpp::get_logger("scp_plan"), "Plan route %d failed.", route.id);
+            rst.success = false;
+            return;
+        }
+
+        // update pose
+        agent.updatePose(carry_plan.plan_result.path.back().second);
+        Pose2D pose;
+        pose.x = task_c.going_to.position.x;
+        pose.y = task_c.going_to.position.y;
+        pose.theta = yaw;
+        for (auto &element : dynamic_elements)
+        {
+            if (element.id == route.id)
+            {
+                element.updatePose(pose);
+                grid_map.putElement(element);
+                break;
+            }
+        }
+
+        obstacles.clear();
+        obstacles.insert(obstacles.end(), static_elements.begin(), static_elements.end());
+        obstacles.insert(obstacles.end(), dynamic_elements.begin(), dynamic_elements.end());
+    }
+    rst.success = true;
 }
