@@ -153,5 +153,26 @@ void SCPPlan::planRoute(ConnectRoutes &routes, CarryPlanResult &rst)
         obstacles.insert(obstacles.end(), static_elements.begin(), static_elements.end());
         obstacles.insert(obstacles.end(), dynamic_elements.begin(), dynamic_elements.end());
     }
+
+    hybrid_astar.config(v, w, dt, 2, 3);
+    hybrid_astar.updateElement(obstacles, agent);
+    hybrid_astar.plan(grid_map, agent.pose, task, agent);
+
+    if (hybrid_astar.plan_result.success)
+    {
+        rst.cost += hybrid_astar.plan_result.cost;
+        rst.iterations += hybrid_astar.plan_result.iterations;
+        for (auto pose : hybrid_astar.plan_result.path)
+        {
+            rst.path.push_back(std::make_pair(0, pose));
+        }
+    }
+    else
+    {
+        RCLCPP_ERROR(rclcpp::get_logger("scp_plan"), "Plan route final failed.");
+        rst.success = false;
+        return;
+    }
+
     rst.success = true;
 }
