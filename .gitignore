@@ -1,0 +1,35 @@
+# Ignore build directories
+/build/
+/Debug/
+/Release/
+
+# Ignore object files, binaries, and other build artifacts
+*.o
+*.a
+*.out
+*.hex
+*.elf
+*.bin
+*.d
+
+# Ignore generated files
+*.d
+*.map
+*.lst
+*.srec
+*.bak
+*.log
+
+# Ignore temporary files
+*.tmp
+*.swp
+*.swo
+*.swd
+
+# Ignore user-specific files
+*.user
+*.userprefs
+
+# Ignore other common files
+*.DS_Store
+Thumbs.db
