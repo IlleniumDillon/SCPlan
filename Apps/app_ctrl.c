@@ -9,6 +9,8 @@
 #include "app_ctrl.h"
 
 float wheelSpeeds[2] = {0, 0};
+float wheelbase_m = 0.18393;
+float fgamma = 1;
 
 void app_ctrl(void *argument)
 {
@@ -28,12 +30,13 @@ void app_ctrl(void *argument)
         		emag_disable();
         	}
         	// get speed target
-
+        	em_setPWM(&leftWheel, dataIn.angularVel / 100);
+        	em_setPWM(&rightWheel, dataIn.linearVel / 100);
         }
 
         // motor control code here
-        em_update(&leftWheel);
-        em_update(&rightWheel);
+//        em_update(&leftWheel);
+//        em_update(&rightWheel);
 
         osDelay(20);
     }

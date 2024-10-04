@@ -20,7 +20,8 @@ void app_arm(void *argument)
 		{
 			busservo_setSync(&arm_handle,
 					arm_handle.pdev[0].id, armTarget.armAngles[0], 50,
-					arm_handle.pdev[0].id, armTarget.armAngles[1], 50);
+					arm_handle.pdev[1].id, armTarget.armAngles[1], 50);
+			osDelay(50);
 		}
 		else
 		{
@@ -31,8 +32,9 @@ void app_arm(void *argument)
 				{
 					armAngles[i] = arm_handle.pdev[i].current_position;
 				}
+				osDelay(5);
 			}
+			osDelay(40);
 		}
-		osDelay(50);
 	}
 }

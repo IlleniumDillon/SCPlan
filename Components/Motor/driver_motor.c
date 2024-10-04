@@ -20,6 +20,17 @@ void em_init(EncoderMotorDev* dev)
 		dev->loChannel = temp;
 	}
 	dev->mileage_m = 0;
+
+	uint32_t arr = 0, prs = 0;
+	do
+	{
+		arr = TIM_SRCFREQ / dev->pwm_freq;
+		prs++;
+	}while (arr >= TIM_ARRMAX);
+	__HAL_TIM_SET_AUTORELOAD(dev->oModule, (arr - 1));
+	__HAL_TIM_SET_PRESCALER(dev->oModule, (prs - 1));
+
+	HAL_TIM_Base_Start(dev->oModule);
 	HAL_TIM_PWM_Start(dev->oModule,dev->hoChannel);
 	HAL_TIM_PWM_Start(dev->oModule,dev->loChannel);
 

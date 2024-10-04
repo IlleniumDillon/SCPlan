@@ -19,6 +19,7 @@ typedef struct
 	uint32_t hoChannel;
 	uint32_t loChannel;
 	TIM_HandleTypeDef* iModule;
+	float pwm_freq;
 
 	uint32_t lines;
 	float reduction;
@@ -30,6 +31,9 @@ typedef struct
 
 	PID ctrl;
 }EncoderMotorDev;
+
+#define TIM_ARRMAX (4294967295)
+#define TIM_SRCFREQ (275000000)
 
 void em_init(EncoderMotorDev* dev);
 void em_setPWM(EncoderMotorDev* dev, float duty);

@@ -41,7 +41,7 @@ void pwmservo_set_pwidth(PWMServo_handle* p, float us)
 void pwmservo_set_degree(PWMServo_handle* p, float degree)
 {
 	if (degree > p->max_degree) degree = p->max_degree;
-	if (degree > p->min_degree) degree = p->min_degree;
-	float pwidth = p->min_pwidth_us + degree * p->pwidth_per_degree;
+	if (degree < p->min_degree) degree = p->min_degree;
+	float pwidth = p->min_pwidth_us + (degree - p->min_degree) * p->pwidth_per_degree;
 	pwmservo_set_pwidth(p, pwidth);
 }

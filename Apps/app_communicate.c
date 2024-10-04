@@ -30,12 +30,39 @@ void usb_rx_ch1_cb(uint8_t* pdata, size_t size)
 }
 void usb_rx_ch2_cb(uint8_t* pdata, size_t size)
 {
+	static DataIn que = {0};
 	char head[16] = {0};
 	float data = 0;
 	int ret = firewater_read(pdata, size, head, 1, &data);
-	if (ret)
+	if (strcmp(head, "sdeg") == 0)
 	{
-		data = data;
+		que.tripodAngle = data;
+		osMessageQueuePut(queue_comInHandle, &que, 0, 0);
+	}
+	else if (strcmp(head, "emag") == 0)
+	{
+		que.magEnable = data > 0.5 ? 1 : 0;
+		osMessageQueuePut(queue_comInHandle, &que, 0, 0);
+	}
+	else if (strcmp(head, "lpwm") == 0)
+	{
+		que.angularVel = data;
+		osMessageQueuePut(queue_comInHandle, &que, 0, 0);
+	}
+	else if (strcmp(head, "rpwm") == 0)
+	{
+		que.linearVel = data;
+		osMessageQueuePut(queue_comInHandle, &que, 0, 0);
+	}
+	else if (strcmp(head, "arm1") == 0)
+	{
+		que.armAngles[0] = (uint16_t)data;
+		osMessageQueuePut(queue_armTargetHandle, &que.armAngles, 0, 0);
+	}
+	else if (strcmp(head, "arm2") == 0)
+	{
+		que.armAngles[1] = (uint16_t)data;
+		osMessageQueuePut(queue_armTargetHandle, &que.armAngles, 0, 0);
 	}
 }
 
