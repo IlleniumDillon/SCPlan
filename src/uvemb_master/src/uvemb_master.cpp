@@ -54,6 +54,8 @@ void UvEmbMaster::spin(bool& run)
     while (run)
     {
         RCLCPP_INFO(get_logger(), "Spin");
+        uvemb_message::msg::UvEmbStatus msg;
+        pubStatus->publish(msg);
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 }
