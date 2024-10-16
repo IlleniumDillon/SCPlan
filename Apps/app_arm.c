@@ -31,6 +31,7 @@ void app_arm(void *argument)
 				if (osMutexAcquire(mtx_armAnglesHandle, 0) == osOK)
 				{
 					armAngles[i] = arm_handle.pdev[i].current_position;
+					osMutexRelease(mtx_armAnglesHandle);
 				}
 				osDelay(5);
 			}

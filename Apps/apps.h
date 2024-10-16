@@ -59,6 +59,8 @@ extern float imuRotations[4];
 extern float imuAccels[3];
 extern float imuGyros[3];
 extern float wheelSpeeds[2];
+extern float currentOutput[2];
+extern float currentTarget[2];
 extern uint16_t armAngles[2];
 
 extern osMutexId_t mtx_batVoltageHandle;
@@ -66,8 +68,10 @@ extern osMutexId_t mtx_imuRotationsHandle;
 extern osMutexId_t mtx_wheelSpeedsHandle;
 extern osMutexId_t mtx_armAnglesHandle;
 
-extern osMessageQueueId_t queue_comInHandle;
+extern osMessageQueueId_t queue_speedTargetHandle;
 extern osMessageQueueId_t queue_armTargetHandle;
+extern osMessageQueueId_t queue_emagTargetHandle;
+extern osMessageQueueId_t queue_tripodTargetHandle;
 
 extern osThreadId_t thread_batMonitorHandle;
 extern osThreadId_t thread_communicateHandle;

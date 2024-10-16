@@ -29,13 +29,21 @@ const osMutexAttr_t mtx_armAngles_attributes = {
 // Timers
 
 // Queues
-osMessageQueueId_t queue_comInHandle;
-const osMessageQueueAttr_t queue_comIn_attributes = {
-  .name = "que_com"
+osMessageQueueId_t queue_speedTargetHandle;
+const osMessageQueueAttr_t queue_speedTarget_attributes = {
+  .name = "que_spd"
 };
 osMessageQueueId_t queue_armTargetHandle;
 const osMessageQueueAttr_t queue_armTarget_attributes = {
   .name = "que_arm"
+};
+osMessageQueueId_t queue_emagTargetHandle;
+const osMessageQueueAttr_t queue_emagTarget_attributes = {
+  .name = "que_emag"
+};
+osMessageQueueId_t queue_tripodTargetHandle;
+const osMessageQueueAttr_t queue_tripodTarget_attributes = {
+  .name = "que_trip"
 };
 // Threads
 osThreadId_t thread_batMonitorHandle;
@@ -118,8 +126,10 @@ void apps_init(void)
     // init timers
     // init queues
     /// TODO: define data type for queue_comInHandle
-    queue_comInHandle = osMessageQueueNew(20, sizeof(DataIn), &queue_comIn_attributes);
+    queue_speedTargetHandle = osMessageQueueNew(20, sizeof(SpeedTarget), &queue_speedTarget_attributes);
     queue_armTargetHandle = osMessageQueueNew(20, sizeof(ArmTarget), &queue_armTarget_attributes);
+    queue_emagTargetHandle = osMessageQueueNew(20, sizeof(EmagTarget), &queue_emagTarget_attributes);
+    queue_tripodTargetHandle = osMessageQueueNew(20, sizeof(TripodTarget), &queue_tripodTarget_attributes);
 }
 
 void apps_start(void)

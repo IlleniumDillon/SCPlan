@@ -39,7 +39,7 @@ float pid_update(PID* pctrl, float feedback)
 {
 	pctrl->feedback = feedback;
 
-	pctrl->error = pctrl->feedback - pctrl->target;
+	pctrl->error = pctrl->target - pctrl->feedback;
 
 	pctrl->sum_error += pctrl->error * pctrl->dt;
 	pctrl->sum_error = pctrl->sum_error > pctrl->ilim_h ? pctrl->ilim_h : pctrl->sum_error;

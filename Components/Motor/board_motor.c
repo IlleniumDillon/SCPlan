@@ -17,7 +17,7 @@ EncoderMotorDev leftWheel =
 				.lines = 11 * 2,
 				.reduction = 56,
 				.radius_m = 0.0282,
-				.reverse = 1,
+				.reverse = 0,
 				.sampleTime_s = 0.02,
 		};
 EncoderMotorDev rightWheel =
@@ -30,6 +30,6 @@ EncoderMotorDev rightWheel =
 				.lines = 11 * 2,
 				.reduction = 56,
 				.radius_m = 0.0282,
-				.reverse = 0,
+				.reverse = 1,
 				.sampleTime_s = 0.02,
 		};
