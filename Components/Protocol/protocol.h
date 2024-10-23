@@ -26,7 +26,7 @@ typedef enum
 
 typedef struct __attribute__((aligned(1))) comdatain_Bur
 {
-	ComDataIn_Bur_Flag flag;
+	uint8_t flag;
 	union
 	{
 		uint16_t armAngles[2];
@@ -53,7 +53,7 @@ typedef uint16_t TripodTarget;
 
 typedef struct __attribute__((aligned(1))) comdataout_reg
 {
-	drift8 voltage;
+	udrift8 voltage;
 	drift32 imuQuat[4];
 	drift16 wheelSpeeds[2];
 	uint16_t armAngles[2];

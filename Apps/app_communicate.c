@@ -32,7 +32,7 @@ void usb_rx_ch2_cb(uint8_t* pdata, size_t size)
 		case COM_FLAG_ARM:
 		{
 			ArmTarget data;
-			memcpy(&data, p->armAngles[0], sizeof(ArmTarget));
+			memcpy(&data, &p->armAngles[0], sizeof(ArmTarget));
 			osMessageQueuePut(queue_armTargetHandle, &data, 0, 0);
 			break;
 		}
@@ -67,7 +67,7 @@ void app_communicate(void *argument)
     {
         if (osMutexAcquire(mtx_batVoltageHandle, 0) == osOK)
         {
-            comDataOut.voltage = drift8_from_float(batVoltage);
+            comDataOut.voltage = udrift8_from_float(batVoltage);
             osMutexRelease(mtx_batVoltageHandle);
         }
         if (osMutexAcquire(mtx_imuRotationsHandle, 0) == osOK)

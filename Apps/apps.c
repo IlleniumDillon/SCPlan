@@ -126,10 +126,10 @@ void apps_init(void)
     // init timers
     // init queues
     /// TODO: define data type for queue_comInHandle
-    queue_speedTargetHandle = osMessageQueueNew(20, sizeof(SpeedTarget), &queue_speedTarget_attributes);
-    queue_armTargetHandle = osMessageQueueNew(20, sizeof(ArmTarget), &queue_armTarget_attributes);
-    queue_emagTargetHandle = osMessageQueueNew(20, sizeof(EmagTarget), &queue_emagTarget_attributes);
-    queue_tripodTargetHandle = osMessageQueueNew(20, sizeof(TripodTarget), &queue_tripodTarget_attributes);
+    queue_speedTargetHandle = osMessageQueueNew(1, sizeof(SpeedTarget), &queue_speedTarget_attributes);
+    queue_armTargetHandle = osMessageQueueNew(1, sizeof(ArmTarget), &queue_armTarget_attributes);
+    queue_emagTargetHandle = osMessageQueueNew(1, sizeof(EmagTarget), &queue_emagTarget_attributes);
+    queue_tripodTargetHandle = osMessageQueueNew(1, sizeof(TripodTarget), &queue_tripodTarget_attributes);
 }
 
 void apps_start(void)

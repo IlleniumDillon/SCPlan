@@ -58,16 +58,16 @@ void app_ctrl(void *argument)
 //        pid_update(&leftWheel.ctrl, em_getSpeed(&leftWheel));
 //        pid_update(&rightWheel.ctrl, em_getSpeed(&rightWheel));
 
-//        if (osMutexAcquire(mtx_wheelSpeedsHandle, 0) == osOK)
-//        {
-//        	wheelSpeeds[0] = leftWheel.ctrl.feedback;
-//        	wheelSpeeds[1] = rightWheel.ctrl.feedback;
-//        	currentOutput[0] = leftWheel.ctrl.out;
-//        	currentOutput[1] = rightWheel.ctrl.out;
-//        	currentTarget[0] = leftWheel.ctrl.target;
-//        	currentTarget[1] = rightWheel.ctrl.target;
-//        	osMutexRelease(mtx_wheelSpeedsHandle);
-//        }
+        if (osMutexAcquire(mtx_wheelSpeedsHandle, 0) == osOK)
+        {
+        	wheelSpeeds[0] = leftWheel.ctrl.feedback;
+        	wheelSpeeds[1] = rightWheel.ctrl.feedback;
+        	currentOutput[0] = leftWheel.ctrl.out;
+        	currentOutput[1] = rightWheel.ctrl.out;
+        	currentTarget[0] = leftWheel.ctrl.target;
+        	currentTarget[1] = rightWheel.ctrl.target;
+        	osMutexRelease(mtx_wheelSpeedsHandle);
+        }
 
         osDelay(20);
     }

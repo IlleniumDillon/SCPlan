@@ -67,7 +67,7 @@ void __dataWrite(BusServo_bus_handle* p, uint8_t id, uint8_t dataLen, ServoCmd c
 	{
 		osDelay(1);
 	}
-	HAL_UART_Transmit(p->port, p->txbuffer, txSize, 1);
+	HAL_UART_Transmit(p->port, p->txbuffer, txSize, 0xFF);
 }
 
 void __dataRead(BusServo_bus_handle* p)
@@ -76,7 +76,7 @@ void __dataRead(BusServo_bus_handle* p)
 	{
 		osDelay(1);
 	}
-	HAL_UART_Receive(p->port, p->rxbuffer, 64, 1);
+	HAL_UART_Receive(p->port, p->rxbuffer, 64, 0xFF);
 
 	if(p->rxbuffer[HEADER1] != 0xFF || p->rxbuffer[HEADER2] != 0xF5) return;
 	if (!__checkCheckByte(p->rxbuffer)) return;
