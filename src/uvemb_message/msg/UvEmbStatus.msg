@@ -1,6 +1,0 @@
-float32 voltage
-float32 rotation_z
-float32 left_wheel_speed
-float32 right_wheel_speed
-uint16 arm_base_pos
-uint16 arm_arm_pos
