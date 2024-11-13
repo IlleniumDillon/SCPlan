@@ -1,2 +1,6 @@
+uve_message/UvePlanResult[] plan_result
 ---
+builtin_interfaces/Time duration
 ---
+uint32 cur_trace
+uint32 cur_waypoint
