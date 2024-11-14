@@ -26,6 +26,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/include
   ${CMAKE_SOURCE_DIR}/include/uve_plan
   ${CMAKE_SOURCE_DIR}/include/uve_plan/astar
+  ${CMAKE_SOURCE_DIR}/include/uve_plan/hybrid_astar
 )
 
 file (GLOB UVE_PLAN_SRC_FILES
@@ -36,6 +37,12 @@ file (GLOB UVE_PLAN_SRC_FILES
 BUILD_EXEC(
   TARGET uve_plan_astar_test
   SOURCES ${UVE_PLAN_SRC_FILES} ${CMAKE_SOURCE_DIR}/src/astar_test.cpp
+  DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message
+)
+
+BUILD_EXEC(
+  TARGET uve_plan_hybrid_astar_test
+  SOURCES ${UVE_PLAN_SRC_FILES} ${CMAKE_SOURCE_DIR}/src/hybrid_astar_test.cpp
   DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message
 )
 

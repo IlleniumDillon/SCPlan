@@ -4,9 +4,9 @@ UveControl::UveControl()
     : Node("uve_control")
 {
     declare_parameter("uve_control.mpc.horizon", 10);
-    declare_parameter("uve_control.mpc.dt", 0.1);
-    declare_parameter("uve_control.mpc.maxWheelSpeed", 1.0);
-    declare_parameter("uve_control.mpc.wheelWidth", 0.5);
+    declare_parameter("uve_control.mpc.dt", 0.5);
+    declare_parameter("uve_control.mpc.maxWheelSpeed", 0.3);
+    declare_parameter("uve_control.mpc.wheelWidth", 0.238);
     declare_parameter<std::vector<double>>("uve_control.mpc.Q", {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0});
     declare_parameter<std::vector<double>>("uve_control.mpc.R", {1.0, 0.0, 0.0, 1.0});
     declare_parameter<std::vector<double>>("uve_control.mpc.Qf", {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0});
