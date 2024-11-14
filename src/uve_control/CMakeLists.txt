@@ -27,6 +27,8 @@ FIND_PACKAGES(
   uvs_message
   uve_message
   uvs_tools
+  rclcpp_action
+  action_msgs
 )
 
 include_directories(
@@ -41,7 +43,7 @@ file (GLOB UVE_CONTROL_SRC_FILES
 BUILD_EXEC(
   TARGET uve_control
   SOURCES ${UVE_CONTROL_SRC_FILES}
-  DEPENDENCIES rclcpp geometry_msgs nav_msgs sensor_msgs std_msgs std_srvs tf2 tf2_geometry_msgs tf2_ros trajectory_msgs uvs_message uve_message uvs_tools Boost Threads
+  DEPENDENCIES rclcpp geometry_msgs nav_msgs sensor_msgs std_msgs std_srvs tf2 tf2_geometry_msgs tf2_ros trajectory_msgs uvs_message uve_message uvs_tools Boost Threads rclcpp_action action_msgs
 )
 
 if(BUILD_TESTING)

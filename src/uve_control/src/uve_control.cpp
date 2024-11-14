@@ -19,11 +19,13 @@ UveControl::UveControl()
     Q << Q_vec[0], Q_vec[1], Q_vec[2], Q_vec[3], Q_vec[4], Q_vec[5], Q_vec[6], Q_vec[7], Q_vec[8];
     R << R_vec[0], R_vec[1], R_vec[2], R_vec[3];
     Qf << Qf_vec[0], Qf_vec[1], Qf_vec[2], Qf_vec[3], Qf_vec[4], Qf_vec[5], Qf_vec[6], Qf_vec[7], Qf_vec[8];
+    wheelWidth = get_parameter("uve_control.mpc.wheelWidth").as_double();
+    RCLCPP_INFO(get_logger(), "Q: %f %f %f %f %f %f %f %f %f", Q(0, 0), Q(0, 1), Q(0, 2), Q(1, 0), Q(1, 1), Q(1, 2), Q(2, 0), Q(2, 1), Q(2, 2));
     mpc_ = std::make_shared<MPC>(
         get_parameter("uve_control.mpc.horizon").as_int(),
         get_parameter("uve_control.mpc.dt").as_double(),
         get_parameter("uve_control.mpc.maxWheelSpeed").as_double(),
-        get_parameter("uve_control.mpc.wheelWidth").as_double(),
+        wheelWidth,
         Q, R, Qf
     );
     mpc_rate = 1 / mpc_->dT;
@@ -41,6 +43,7 @@ UveControl::UveControl()
     pub_emag_ = create_publisher<uvs_message::msg::UvEmbEmag>("uv_emb_emag", 1);
     pub_kinetics_ = create_publisher<uvs_message::msg::UvEmbKinetics>("uv_emb_kinetics", 1);
     sub_status_ = create_subscription<uve_message::msg::UveAgentStatus>("uve_agent_status", 1, std::bind(&UveControl::status_callback, this, std::placeholders::_1));
+    sub_emb_ = create_subscription<uvs_message::msg::UvEmbStatus>("uv_emb_status", 1, std::bind(&UveControl::emb_callback, this, std::placeholders::_1));
     timer_ = create_wall_timer(std::chrono::milliseconds(100), std::bind(&UveControl::timer_callback, this));
 }
 
@@ -56,6 +59,7 @@ rclcpp_action::GoalResponse UveControl::handle_goal(const rclcpp_action::GoalUUI
 {
     (void) uuid;
     (void) goal;
+    RCLCPP_INFO(get_logger(), "Received goal request");
     if (future_.valid())
     {
         return rclcpp_action::GoalResponse::REJECT;
@@ -73,6 +77,7 @@ void UveControl::handle_accepted(const std::shared_ptr<rclcpp_action::ServerGoal
 {
     using namespace std::placeholders;
     // std::thread{std::bind(&UveControl::execute, this, _1), goal_handle}.detach();
+    RCLCPP_INFO(get_logger(), "handle_accepted");
     future_ = std::async(std::launch::async, std::bind(&UveControl::execute, this, _1), goal_handle);
 }
 
@@ -84,7 +89,7 @@ void UveControl::execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<u
     auto result = std::make_shared<uve_message::action::UvePathTrack::Result>();
 
     Eigen::VectorXd x_ref, y_ref, theta_ref, v_ref, w_ref;
-    Eigen::Vector3d state;
+    Eigen::VectorXd state(5);
 
     auto tnow = now();
 
@@ -104,6 +109,7 @@ void UveControl::execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<u
         mpc_->setTrackReference(x_ref, y_ref, theta_ref, v_ref, w_ref);
         while(1)
         {
+            RCLCPP_INFO(get_logger(), "execute");
             if (goal_handle->is_canceling())
             {
                 auto d = now() - tnow;
@@ -112,9 +118,17 @@ void UveControl::execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<u
                 goal_handle->canceled(result);
                 return;
             }
-            state << status_.pose.x, status_.pose.y, status_.pose.theta;
-            Eigen::VectorXd control;
+            RCLCPP_INFO(get_logger(), "1");
+            state <<    status_.pose.x, 
+                        status_.pose.y, 
+                        status_.pose.theta ,
+                        (emb_.left_wheel_speed+emb_.right_wheel_speed) / 2,
+                        (emb_.right_wheel_speed-emb_.left_wheel_speed) / wheelWidth * 2;
+            RCLCPP_INFO(get_logger(), "2");
+            Eigen::VectorXd control(2);
+            RCLCPP_INFO(get_logger(), "3");
             bool done = mpc_->update(state, control);
+            RCLCPP_INFO(get_logger(), "4");
             uvs_message::msg::UvEmbKinetics kinetics;
             kinetics.v = done ? 0 : control(0);
             kinetics.w = done ? 0 : control(1);
@@ -137,6 +151,11 @@ void UveControl::execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<u
 void UveControl::status_callback(const uve_message::msg::UveAgentStatus::SharedPtr msg)
 {
     status_ = *msg;
+}
+
+void UveControl::emb_callback(const uvs_message::msg::UvEmbStatus::SharedPtr msg)
+{
+    emb_ = *msg;
 }
 
 void UveControl::timer_callback()

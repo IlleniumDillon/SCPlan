@@ -20,10 +20,12 @@ FIND_PACKAGES(
   tf2_ros
   tf2_geometry_msgs
   uvs_message
+  rclcpp_action
+  action_msgs
 )
 
 file(GLOB EMB_MESSAGES_SOURCE "msg/*.msg" "srv/*.srv" "act/*.action")
-GEN_MESSAGE(MESSAGES ${EMB_MESSAGES_SOURCE} DEPENDENCIES geometry_msgs nav_msgs uvs_message)
+GEN_MESSAGE(MESSAGES ${EMB_MESSAGES_SOURCE} DEPENDENCIES geometry_msgs nav_msgs uvs_message rclcpp_action action_msgs)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

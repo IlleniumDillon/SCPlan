@@ -20,6 +20,8 @@
   <depend>uvs_tools</depend>
   <depend>uvs_message</depend>
   <depend>uve_message</depend>
+  <depend>rclcpp_action</depend>
+  <depend>action_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

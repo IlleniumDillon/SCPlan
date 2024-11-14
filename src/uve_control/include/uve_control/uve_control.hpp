@@ -8,6 +8,7 @@
 #include "uvs_message/msg/uv_emb_arm.hpp"
 #include "uvs_message/msg/uv_emb_emag.hpp"
 #include "uvs_message/msg/uv_emb_kinetics.hpp"
+#include "uvs_message/msg/uv_emb_status.hpp"
 #include "uve_message/action/uve_path_track.hpp"
 #include "uve_message/msg/uve_agent_status.hpp"
 
@@ -33,6 +34,8 @@ private:
 
     void status_callback(const uve_message::msg::UveAgentStatus::SharedPtr msg);
 
+    void emb_callback(const uvs_message::msg::UvEmbStatus::SharedPtr msg);
+
     void timer_callback();
 
 private:
@@ -41,14 +44,17 @@ private:
     rclcpp::Publisher<uvs_message::msg::UvEmbEmag>::SharedPtr pub_emag_;
     rclcpp::Publisher<uvs_message::msg::UvEmbKinetics>::SharedPtr pub_kinetics_;
     rclcpp::Subscription<uve_message::msg::UveAgentStatus>::SharedPtr sub_status_;
+    rclcpp::Subscription<uvs_message::msg::UvEmbStatus>::SharedPtr sub_emb_;
     rclcpp::TimerBase::SharedPtr timer_;
 
     std::shared_ptr<MPC> mpc_;
     double mpc_rate = 0;
+    double wheelWidth = 0.0;
 
     std::shared_future<void> future_;
 
     uve_message::msg::UveAgentStatus status_;
+    uvs_message::msg::UvEmbStatus emb_;
 };
 
 #endif // UVE_CONTROL_HPP
