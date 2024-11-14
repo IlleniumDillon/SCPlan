@@ -46,6 +46,18 @@ private:
         {
             goal_.theta += 2 * M_PI;
         }
+        if (goal_.theta >= 2*M_PI)
+        {
+            goal_.theta -= 2 * M_PI;
+        }
+        if (start_.theta < 0)
+        {
+            start_.theta += 2 * M_PI;
+        }
+        if (start_.theta >= 2*M_PI)
+        {
+            start_.theta -= 2 * M_PI;
+        }
 
         Eigen::Matrix<int, 1, 3> size;
         size << map_.info.width, map_.info.height , 32;
@@ -126,7 +138,7 @@ private:
             send_goal_options.result_callback = std::bind(&HybridAStarTestNode::result_callback, this, std::placeholders::_1);
             send_goal_options.feedback_callback = std::bind(&HybridAStarTestNode::feedback_callback, this, std::placeholders::_1, std::placeholders::_2);
             auto goal_handle_future = action_client_->async_send_goal(goal_msg, send_goal_options);
-            
+
         }
     }
 
