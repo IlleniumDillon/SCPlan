@@ -60,10 +60,10 @@ rclcpp_action::GoalResponse UveControl::handle_goal(const rclcpp_action::GoalUUI
     (void) uuid;
     (void) goal;
     RCLCPP_INFO(get_logger(), "Received goal request");
-    if (future_.valid())
-    {
-        return rclcpp_action::GoalResponse::REJECT;
-    }
+    // if (future_.valid())
+    // {
+    //     return rclcpp_action::GoalResponse::REJECT;
+    // }
     return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
 }
 
@@ -76,9 +76,9 @@ rclcpp_action::CancelResponse UveControl::handle_cancel(const std::shared_ptr<rc
 void UveControl::handle_accepted(const std::shared_ptr<rclcpp_action::ServerGoalHandle<uve_message::action::UvePathTrack>> goal_handle)
 {
     using namespace std::placeholders;
-    // std::thread{std::bind(&UveControl::execute, this, _1), goal_handle}.detach();
+    std::thread{std::bind(&UveControl::execute, this, _1), goal_handle}.detach();
     RCLCPP_INFO(get_logger(), "handle_accepted");
-    future_ = std::async(std::launch::async, std::bind(&UveControl::execute, this, _1), goal_handle);
+    // future_ = std::async(std::launch::async, std::bind(&UveControl::execute, this, _1), goal_handle);
 }
 
 void UveControl::execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<uve_message::action::UvePathTrack>> goal_handle)
@@ -105,6 +105,14 @@ void UveControl::execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<u
             x_ref(waypoint) = goal->plan_result[traceNum].trace[waypoint].x;
             y_ref(waypoint) = goal->plan_result[traceNum].trace[waypoint].y;
             theta_ref(waypoint) = goal->plan_result[traceNum].trace[waypoint].theta;
+            if (theta_ref(waypoint) < 0)
+            {
+                theta_ref(waypoint) += 2 * M_PI;
+            }
+            if (theta_ref(waypoint) >= 2*M_PI)
+            {
+                theta_ref(waypoint) -= 2 * M_PI;
+            }
         }
         mpc_->setTrackReference(x_ref, y_ref, theta_ref, v_ref, w_ref);
         while(1)
@@ -151,6 +159,14 @@ void UveControl::execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<u
 void UveControl::status_callback(const uve_message::msg::UveAgentStatus::SharedPtr msg)
 {
     status_ = *msg;
+    if (status_.pose.theta < 0)
+    {
+        status_.pose.theta += 2 * M_PI;
+    }
+    if (status_.pose.theta >= 2*M_PI)
+    {
+        status_.pose.theta -= 2 * M_PI;
+    }
 }
 
 void UveControl::emb_callback(const uvs_message::msg::UvEmbStatus::SharedPtr msg)
