@@ -3,12 +3,14 @@
 
 #include "uvs_tools/graph_search/graph_search.hpp"
 #include <iostream>
+#include <rclcpp/rclcpp.hpp>
 
 constexpr int GRAPH_DIMENSION = 3;
 class HybridAStarNode : public GraphNodeBase<GRAPH_DIMENSION>
 {
 public:
     bool occupied = false;
+    double v = 0, w = 0;
 };
 class HybridAStarGraph : public GridGraph<HybridAStarNode, GRAPH_DIMENSION>
 {
@@ -59,7 +61,11 @@ public:
     }
 };
 using HybridAStarTraceType = Eigen::Matrix<double, 1, 3>;
-class HybridAStarResult : public GraphSearchResultBase<HybridAStarTraceType>{};
+class HybridAStarResult : public GraphSearchResultBase<HybridAStarTraceType>
+{
+public:
+    std::vector<Eigen::Matrix<double, 1, 2>> vw;
+};
 class HybridAStarSearch : public GraphSearchBase<HybridAStarGraph, HybridAStarNode, HybridAStarResult>
 {
 public:
@@ -71,6 +77,10 @@ public:
         {
             for (int j = -step_w; j <= step_w; j++)
             {
+                if (i == 0 && j == 0)
+                {
+                    continue;
+                }
                 double v = i * v_;
                 double w = j * w_;
                 
@@ -87,6 +97,7 @@ public:
                     double L = std::sqrt(2*R*R*(1 - std::cos(w * dt)));
                     neighbor(0) = L;
                 }
+                vwList.push_back(Eigen::Matrix<double, 1, 2>(v, w));
                 neighborList.push_back(neighbor);
 
                 neighborCost.push_back(std::abs(v*dt));
@@ -126,10 +137,20 @@ public:
             0
         );
     }
-    virtual void getNeighbors(HybridAStarNode* node, std::vector<HybridAStarNode*>& neighbors, std::vector<GraphNodeCost>& costs)
+    void getNeighbors(HybridAStarNode* node, 
+        std::vector<HybridAStarNode*>& neighbors, 
+        std::vector<GraphNodeCost>& costs)
+        {}
+    void getNeighbors(HybridAStarNode* node, 
+        std::vector<HybridAStarNode*>& neighbors, 
+        std::vector<GraphNodeCost>& costs,
+        std::vector<Eigen::Matrix<double, 1, 3>>& neighborState,
+        std::vector<Eigen::Matrix<double, 1, 2>>& neighborVW)
     {
         neighbors.clear();
         costs.clear();
+        neighborState.clear();
+        neighborVW.clear();
         for (int i = 0; i < neighborList.size(); i++)
         {
             auto & d = neighborList[i];
@@ -141,10 +162,11 @@ public:
             {
                 newState(2) = newState(2) - 2 * (M_PI);
             }
-            auto neighbor = graph[node->state + dstate];
+            auto neighbor = graph[newState];
             if (neighbor != nullptr && !neighbor->occupied && neighbor->flag != IN_CLOSESET)
             {
-                neighbor->state = newState;
+                neighborState.push_back(newState);
+                neighborVW.push_back(vwList[i]);
                 neighbors.push_back(neighbor);
                 costs.push_back(GraphNodeCost(neighborCost[i], 0));
             }
@@ -158,11 +180,87 @@ public:
         }
         return false;
     }
-    // HybridAStarResult search(HybridAStarNode* start, HybridAStarNode* goal) override
-    // {
-    //     return HybridAStarResult();
-    // }
+    HybridAStarResult search(HybridAStarNode* start, HybridAStarNode* goal) override
+    {
+        reset();
+        auto start_time = std::chrono::high_resolution_clock::now();
+        
+        start->g = GraphNodeCost(0, 0);
+        start->h = heuristic(start, goal);
+        start->f = start->g + start->h;
+        start->flag = IN_OPENSET;
+        start->it = openSet.insert(std::make_pair(start->f, start));
+        while (!openSet.empty())
+        {
+            result.iterations++;
+            auto current = (HybridAStarNode*)openSet.begin()->second;
+            // std::cout << "current: " << current->index << std::endl;
+
+            if (endSearch(current, goal))
+            {
+                result.success = true;
+                result.cost = current->g.distance;
+                while (current != nullptr)
+                {
+                    result.trace.push_back(current->state);
+                    result.vw.push_back(Eigen::Matrix<double, 1, 2>(current->v, current->w));
+                    current = (HybridAStarNode*)current->parent;
+                }
+                std::reverse(result.trace.begin(), result.trace.end());
+                std::reverse(result.vw.begin(), result.vw.end());
+                break;
+            }
+            openSet.erase(current->it);
+            closeSet.push_back(current);
+            current->flag = IN_CLOSESET;
+
+            std::vector<HybridAStarNode*> neighbors;
+            std::vector<GraphNodeCost> costs;
+            std::vector<Eigen::Matrix<double, 1, 3>> neighborState;
+            std::vector<Eigen::Matrix<double, 1, 2>> neighborVW;
+            // RCLCPP_INFO(rclcpp::get_logger("test"), "current: %f,%f,%f", current->state(0), current->state(1), current->state(2));
+            getNeighbors(current, neighbors, costs, neighborState, neighborVW);
+            // RCLCPP_INFO(rclcpp::get_logger("test"), "neighbors: %d", neighbors.size());
+            for (int i = 0; i < neighbors.size(); i++)
+            {
+                auto neighbor = neighbors[i];
+                // if (neighbor->flag == IN_CLOSESET)
+                // {
+                //     continue;
+                // }
+                GraphNodeCost tentative_g = current->g + costs[i];
+                if (neighbor->flag != IN_OPENSET)
+                {
+                    neighbor->h = heuristic(neighbor, goal);
+                    neighbor->g = tentative_g;
+                    neighbor->f = neighbor->g + neighbor->h;
+                    neighbor->parent = current;
+                    neighbor->flag = IN_OPENSET;
+                    neighbor->state = neighborState[i];
+                    neighbor->v = neighborVW[i](0);
+                    neighbor->w = neighborVW[i](1);
+                    neighbor->it = openSet.insert(std::make_pair(neighbor->f, neighbor));
+                }
+                else if (tentative_g < neighbor->g)
+                {
+                    openSet.erase(neighbor->it);
+                    neighbor->h = heuristic(neighbor, goal);
+                    neighbor->g = tentative_g;
+                    neighbor->f = neighbor->g + neighbor->h;
+                    neighbor->parent = current;
+                    neighbor->state = neighborState[i];
+                    neighbor->v = neighborVW[i](0);
+                    neighbor->w = neighborVW[i](1);
+                    neighbor->it = openSet.insert(std::make_pair(neighbor->f, neighbor));
+                }
+            }
+        }
+        auto end_time = std::chrono::high_resolution_clock::now();
+        result.planTime = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count();
+        return result;
+    }
 private:
+    std::vector<Eigen::Matrix<double, 1, 2>> vwList;
     // 0: 圆弧割线长度, 1: 割线与切线夹角， 2: 转角
     std::vector<Eigen::Matrix<double, 1, 3>> neighborList;
     std::vector<double> neighborCost;

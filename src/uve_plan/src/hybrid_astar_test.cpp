@@ -88,6 +88,7 @@ private:
         search.updateGraph(graph);
         std::cout << "graph updated" << std::endl;
         auto start = graph({(int)((start_.x - origin[0]) / resolution[0]), (int)((start_.y - origin[1]) / resolution[1]), (int)(start_.theta / resolution[2])});
+        start->state = {start_.x, start_.y, start_.theta};
         if (start == nullptr)
         {
             std::cout << "start is null" << std::endl;
@@ -95,6 +96,7 @@ private:
         }
         std::cout << "start: " << start->state << std::endl;
         auto goal = graph({(int)((goal_.x - origin[0]) / resolution[0]), (int)((goal_.y - origin[1]) / resolution[1]), (int)(goal_.theta / resolution[2])});
+        goal->state = {goal_.x, goal_.y, goal_.theta};
         if (goal == nullptr)
         {
             std::cout << "goal is null" << std::endl;
@@ -107,31 +109,66 @@ private:
         std::cout << "it: " << search.result.iterations << std::endl;
         if (search.result.success)
         {
-            geometry_msgs::msg::PoseArray t;
+            
+            double ddt = 0.1;
+            geometry_msgs::msg::PoseArray trace_patch;
             nav_msgs::msg::Path path;
+            trace_patch.header.frame_id = "map";
             path.header.frame_id = "map";
-            t.header.frame_id = "map";
-            for (auto& trace : search.result.trace)
+            search.result.vw.push_back(Eigen::Matrix<double, 1, 2>(0, 0));
+            for (int i = 0; i < search.result.trace.size(); i++)
             {
-                geometry_msgs::msg::PoseStamped pose;
-                pose.header.frame_id = "map";
-                pose.pose.position.x = trace[0];
-                pose.pose.position.y = trace[1];
-                pose.pose.orientation = tf2::toMsg(tf2::Quaternion(tf2::Vector3(0, 0, 1), trace[2]));
-                path.poses.push_back(pose);
-                t.poses.push_back(pose.pose);   
+                Eigen::Vector3i temp;
+                temp << (int)((search.result.trace[i](0) - origin[0]) / resolution[0]), (int)((search.result.trace[i](1) - origin[1]) / resolution[1]), (int)(search.result.trace[i](2) / resolution[2]);
+                // RCLCPP_INFO(get_logger(), "trace: %f,%f,%f", search.result.trace[i](0), search.result.trace[i](1), search.result.trace[i](2));
+                // RCLCPP_INFO(get_logger(), "temp: %f,%f,%f", temp(0)*resolution[0]+origin[0], temp(1)*resolution[1]+origin[1], temp(2)*resolution[2]);
+                double v = search.result.vw[i+1](0);
+                double w = search.result.vw[i+1](1);
+                // RCLCPP_INFO(get_logger(), "v: %f, w: %f", v, w);
+                // RCLCPP_INFO(get_logger(), "------------------");
+                
+                for (int j = 0; j < 6; j++)
+                {
+                    double dt = ddt * j;
+                    Eigen::Matrix<double, 1, 3> neighbor;
+                    neighbor(2) = w * dt;
+                    neighbor(1) = neighbor(2) / 2;
+                    if (w == 0)
+                    {
+                        neighbor(0) = v * dt;
+                    }
+                    else
+                    {
+                        double R = v / w;
+                        double L = std::sqrt(2*R*R*(1 - std::cos(w * dt)));
+                        neighbor(0) = L;
+                    }
+                    Eigen::Matrix<double, 1, 3> dstate;
+                    dstate << neighbor(0) * std::cos(search.result.trace[i](2) + neighbor(1)), neighbor(0) * std::sin(search.result.trace[i](2) + neighbor(1)), neighbor(2);
+
+                    Eigen::Matrix<double, 1, 3> newState = search.result.trace[i] + dstate;
+                    // RCLCPP_INFO(get_logger(), "newState: %f,%f,%f", newState(0), newState(1), newState(2));
+                    geometry_msgs::msg::PoseStamped pose;
+                    pose.header.frame_id = "map";
+                    pose.pose.position.x = newState(0);
+                    pose.pose.position.y = newState(1);
+                    pose.pose.position.z = 0;
+                    pose.pose.orientation = tf2::toMsg(tf2::Quaternion(tf2::Vector3(0, 0, 1), newState(2)));
+                    path.poses.push_back(pose);
+                    trace_patch.poses.push_back(pose.pose);
+                }
             }
             pub_path_->publish(path);
-            pub_trace_->publish(t);
+            pub_trace_->publish(trace_patch);
 
             auto goal_msg = uve_message::action::UvePathTrack::Goal();
             goal_msg.plan_result.resize(1);
-            goal_msg.plan_result[0].trace.resize(search.result.trace.size());
-            for (int i = 0; i < search.result.trace.size(); i++)
+            goal_msg.plan_result[0].trace.resize(path.poses.size());
+            for (int i = 0; i < path.poses.size(); i++)
             {
-                goal_msg.plan_result[0].trace[i].x = search.result.trace[i][0];
-                goal_msg.plan_result[0].trace[i].y = search.result.trace[i][1];
-                goal_msg.plan_result[0].trace[i].theta = search.result.trace[i][2];
+                goal_msg.plan_result[0].trace[i].x = path.poses[i].pose.position.x;
+                goal_msg.plan_result[0].trace[i].y = path.poses[i].pose.position.y;
+                goal_msg.plan_result[0].trace[i].theta = tf2::getYaw(path.poses[i].pose.orientation);
             }
             auto send_goal_options = rclcpp_action::Client<uve_message::action::UvePathTrack>::SendGoalOptions();
             send_goal_options.goal_response_callback = std::bind(&HybridAStarTestNode::goal_response_callback, this, std::placeholders::_1);
