@@ -1,0 +1,18 @@
+/uve_control:
+  ros__parameters:
+    uve_control.mpc.horizon:  10
+    uve_control.mpc.dt:  0.1
+    uve_control.mpc.Q:  [
+      10.0, 0.0, 0.0,
+      0.0, 10.0, 0.0,
+      0.0, 0.0, 0.1
+    ]
+    uve_control.mpc.R:  [
+      1.0, 0.0,
+      0.0, 0.1
+    ]
+    uve_control.mpc.Qf:  [
+      10.0, 0.0, 0.0,
+      0.0, 10.0, 0.0,
+      0.0, 0.0, 0.1
+    ]

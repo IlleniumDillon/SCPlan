@@ -32,7 +32,7 @@ private:
     
     void execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<uve_message::action::UvePathTrack>> goal_handle);
 
-    void status_callback(const uve_message::msg::UveAgentStatus::SharedPtr msg);
+    void status_callback(const geometry_msgs::msg::Pose2D::SharedPtr msg);
 
     void emb_callback(const uvs_message::msg::UvEmbStatus::SharedPtr msg);
 
@@ -43,7 +43,7 @@ private:
     rclcpp::Publisher<uvs_message::msg::UvEmbArm>::SharedPtr pub_arm_;
     rclcpp::Publisher<uvs_message::msg::UvEmbEmag>::SharedPtr pub_emag_;
     rclcpp::Publisher<uvs_message::msg::UvEmbKinetics>::SharedPtr pub_kinetics_;
-    rclcpp::Subscription<uve_message::msg::UveAgentStatus>::SharedPtr sub_status_;
+    rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr sub_status_;
     rclcpp::Subscription<uvs_message::msg::UvEmbStatus>::SharedPtr sub_emb_;
     rclcpp::TimerBase::SharedPtr timer_;
 
@@ -53,7 +53,7 @@ private:
 
     std::shared_future<void> future_;
 
-    uve_message::msg::UveAgentStatus status_;
+    geometry_msgs::msg::Pose2D status_;
     uvs_message::msg::UvEmbStatus emb_;
 };
 

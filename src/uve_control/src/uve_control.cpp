@@ -42,7 +42,7 @@ UveControl::UveControl()
     pub_arm_ = create_publisher<uvs_message::msg::UvEmbArm>("uvs_emb_arm", 1);
     pub_emag_ = create_publisher<uvs_message::msg::UvEmbEmag>("uvs_emb_emag", 1);
     pub_kinetics_ = create_publisher<uvs_message::msg::UvEmbKinetics>("uvs_emb_kinetics", 1);
-    sub_status_ = create_subscription<uve_message::msg::UveAgentStatus>("uve_agent_status", 1, std::bind(&UveControl::status_callback, this, std::placeholders::_1));
+    sub_status_ = create_subscription<geometry_msgs::msg::Pose2D>("uve_agent_status", 1, std::bind(&UveControl::status_callback, this, std::placeholders::_1));
     sub_emb_ = create_subscription<uvs_message::msg::UvEmbStatus>("uvs_emb_status", 1, std::bind(&UveControl::emb_callback, this, std::placeholders::_1));
     timer_ = create_wall_timer(std::chrono::milliseconds(100), std::bind(&UveControl::timer_callback, this));
 }
@@ -127,9 +127,9 @@ void UveControl::execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<u
                 return;
             }
             RCLCPP_INFO(get_logger(), "1");
-            state <<    status_.pose.x, 
-                        status_.pose.y, 
-                        status_.pose.theta ,
+            state <<    status_.x, 
+                        status_.y, 
+                        status_.theta ,
                         (emb_.left_wheel_speed+emb_.right_wheel_speed) / 2,
                         (emb_.right_wheel_speed-emb_.left_wheel_speed) / wheelWidth * 2;
             RCLCPP_INFO(get_logger(), "2");
@@ -156,16 +156,16 @@ void UveControl::execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<u
     goal_handle->succeed(result);
 }
 
-void UveControl::status_callback(const uve_message::msg::UveAgentStatus::SharedPtr msg)
+void UveControl::status_callback(const geometry_msgs::msg::Pose2D::SharedPtr msg)
 {
     status_ = *msg;
-    if (status_.pose.theta < 0)
+    if (status_.theta < 0)
     {
-        status_.pose.theta += 2 * M_PI;
+        status_.theta += 2 * M_PI;
     }
-    if (status_.pose.theta >= 2*M_PI)
+    if (status_.theta >= 2*M_PI)
     {
-        status_.pose.theta -= 2 * M_PI;
+        status_.theta -= 2 * M_PI;
     }
 }
 

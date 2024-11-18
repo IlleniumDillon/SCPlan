@@ -7,7 +7,7 @@ UveMapClient::UveMapClient()
 {
     sub_pose_list_ = create_subscription<uvs_message::msg::UvOptPoseList>("uvs_pose_list", 1, std::bind(&UveMapClient::pose_list_callback, this, std::placeholders::_1));
     pub_status_ = create_publisher<geometry_msgs::msg::Pose2D>("uve_agent_status", 1);
-    timer_ = create_wall_timer(std::chrono::milliseconds(100), std::bind(&UveMapClient::timer_callback, this));
+    timer_ = create_wall_timer(std::chrono::milliseconds(20), std::bind(&UveMapClient::timer_callback, this));
 }
 
 UveMapClient::~UveMapClient()
