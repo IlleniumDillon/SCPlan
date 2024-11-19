@@ -1,0 +1,32 @@
+/uve_perception:
+  ros__parameters:
+    camera:
+      color:
+        stream_format: "RS2_FORMAT_BGR8"
+        width: 1920
+        height: 1080
+        fps: 30
+        enable: true
+      depth:
+        stream_format: "RS2_FORMAT_Z16"
+        width: 1280
+        height: 720
+        fps: 30
+        enable: false
+      infrared:
+        stream_format: "RS2_FORMAT_Y8"
+        width: 1280
+        height: 720
+        fps: 30
+        enable: false
+    apriltag:
+      enable: true
+      family: "tag36h11"
+      threads: 4
+      quad_decimate: 2.0
+      quad_sigma: 0.0
+      refine_edges: true
+      decode_sharpening: 0.25
+      debug: false
+      tagsize: 0.0752
+    pubrate:  30
