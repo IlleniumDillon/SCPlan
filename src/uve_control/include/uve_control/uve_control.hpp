@@ -10,7 +10,7 @@
 #include "uvs_message/msg/uv_emb_kinetics.hpp"
 #include "uvs_message/msg/uv_emb_status.hpp"
 #include "uve_message/action/uve_path_track.hpp"
-#include "uve_message/msg/uve_agent_status.hpp"
+// #include "uve_message/msg/uve_agent_status.hpp"
 
 #include <thread>
 #include <future>

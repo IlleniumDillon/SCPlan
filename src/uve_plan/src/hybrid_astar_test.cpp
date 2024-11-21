@@ -8,7 +8,7 @@
 #include "geometry_msgs/msg/pose2_d.hpp"
 #include "tf2/utils.h"
 #include "geometry_msgs/msg/pose_array.hpp"
-#include "uve_message/msg/uve_agent_status.hpp"
+// #include "uve_message/msg/uve_agent_status.hpp"
 #include "uve_message/action/uve_path_track.hpp"
 
 class HybridAStarTestNode : public rclcpp::Node

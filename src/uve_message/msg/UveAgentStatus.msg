@@ -1,2 +1,0 @@
-uvs_message/UvEmbStatus basic_info
-geometry_msgs/Pose2D pose
