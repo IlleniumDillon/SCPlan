@@ -1,0 +1,28 @@
+<library path="uve_rviz_plugin">
+    <class
+        name="scene_interaction_moving/NonInteractiveMove"
+        type="uve_rviz_plugin::NonInteractiveMove"
+        base_class_type="rviz_common::Tool">
+        <description>
+            This tool allows you to move the robot to a goal position (not considering scene coupling).
+        </description>
+    </class>
+
+    <class 
+        name="scene_interaction_moving/NonInteractiveCarry"
+        type="uve_rviz_plugin::NonInteractiveCarry"
+        base_class_type="rviz_common::Tool">
+        <description>
+            This tool allows you to move the robot to a goal position while carrying an object (considering scene coupling).
+        </description>
+    </class>
+
+    <class 
+        name="scene_interaction_moving/InteractiveMove"
+        type="uve_rviz_plugin::InteractiveMove"
+        base_class_type="rviz_common::Tool">
+        <description>
+            This tool allows you to move the robot to a goal position (considering scene coupling).
+        </description>
+    </class>
+</library>
