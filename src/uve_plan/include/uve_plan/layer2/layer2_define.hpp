@@ -1,0 +1,4 @@
+#ifndef LAYER2_DEFINE_HPP
+#define LAYER2_DEFINE_HPP
+
+#endif // LAYER2_DEFINE_HPP

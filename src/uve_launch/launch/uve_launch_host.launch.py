@@ -54,14 +54,13 @@ def generate_launch_description():
         parameters=[config]
     )
     
-    # uve_plan
-    # uve_plan = Node(
-    #     package='uve_plan',
-    #     executable='uve_plan',
-    #     name='uve_plan',
-    #     output='screen',
-    #     parameters=[config]
-    # )
+    uve_plan = Node(
+        package='uve_plan',
+        executable='uve_layer1_plan',
+        name='uve_layer1_plan',
+        output='screen',
+        parameters=[config]
+    )
     
     # rviz2
     rviz2 = ExecuteProcess(
@@ -74,7 +73,7 @@ def generate_launch_description():
             uvs_optitrack,
             uvs_mapserver,
             uve_mapclient,
-            # uve_plan,
+            uve_plan,
             rviz2
         ]
     )

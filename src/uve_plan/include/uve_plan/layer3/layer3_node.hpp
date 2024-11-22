@@ -1,0 +1,4 @@
+#ifndef LAYER3_NODE_HPP
+#define LAYER3_NODE_HPP
+
+#endif // LAYER3_NODE_HPP

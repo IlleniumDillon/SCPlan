@@ -1,0 +1,4 @@
+#ifndef LAYER2_PLAN_HPP
+#define LAYER2_PLAN_HPP
+
+#endif // LAYER2_PLAN_HPP

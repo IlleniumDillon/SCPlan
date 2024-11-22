@@ -1,0 +1,4 @@
+#ifndef LAYER2_NODE_HPP
+#define LAYER2_NODE_HPP
+
+#endif // LAYER2_NODE_HPP
