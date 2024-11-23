@@ -36,12 +36,20 @@ include_directories(
 
 )
 
-file (GLOB_RECURSE uve_mapclient_SRC "src/*.cpp")
+file (GLOB uve_mapclient_SRC "src/uve_mapclient_main.cpp" "src/uve_mapclient.cpp")
 BUILD_EXEC(
   TARGET uve_mapclient
   SOURCES ${uve_mapclient_SRC}
   DEPENDENCIES rclcpp geometry_msgs nav_msgs sensor_msgs std_msgs tf2 tf2_geometry_msgs tf2_ros trajectory_msgs uvs_tools uvs_message uve_message rclcpp_action
 )
+
+file (GLOB uve_simoptitrack "src/uve_simoptitrack_node.cpp")
+BUILD_EXEC(
+  TARGET uve_simoptitrack
+  SOURCES ${uve_simoptitrack}
+  DEPENDENCIES rclcpp geometry_msgs nav_msgs sensor_msgs std_msgs tf2 tf2_geometry_msgs tf2_ros trajectory_msgs uvs_tools uvs_message uve_message rclcpp_action
+)
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

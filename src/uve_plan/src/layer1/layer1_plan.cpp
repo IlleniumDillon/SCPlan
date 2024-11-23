@@ -6,6 +6,10 @@ using namespace layer1;
 
 void layer1::Layer1Plan::setExecuteSpace(double max_v, double max_w, int step_v, int step_w, double dt)
 {
+    vw_space.clear();
+    neighbor_space.clear();
+    neighbor_cost.clear();
+
     double v_ = max_v / step_v;
     double w_ = max_w / step_w;
     for (int i = -step_v; i <= step_v; i++)
@@ -67,7 +71,7 @@ void Layer1Plan::reset()
         n->flag = NOT_VISITED;
     }
     close_set.clear();
-    result = Layer1PlanResult();
+    // result = Layer1PlanResult();
 }
 
 Layer1GraphNodeCost Layer1Plan::heuristic(Layer1GraphNode *node, Layer1GraphNode *goal)
@@ -107,6 +111,7 @@ void layer1::Layer1Plan::getNeighbors(Layer1GraphNode *node, std::vector<Layer1G
         auto neighbor = (*graph)(state.x, state.y, state.z);
         if (neighbor != nullptr && !neighbor->collision_static && !neighbor->collision_dynamic && neighbor->flag != IN_CLOSESET)
         {
+            // std::cout << "neighbor: " << state.x << "," << state.y << "," << state.z << std::endl;
             neighbors.push_back(neighbor);
             costs.push_back(Layer1GraphNodeCost(neighbor_cost[i], 0));
             neighbor_state.push_back(state);
@@ -127,6 +132,8 @@ bool Layer1Plan::endCondition(Layer1GraphNode *node, Layer1GraphNode *goal)
 
 Layer1PlanResult Layer1Plan::search(Layer1GraphNode *start, Layer1GraphNode *goal)
 {
+    result = Layer1PlanResult();
+
     auto start_time = std::chrono::high_resolution_clock::now();
     start->g = Layer1GraphNodeCost(0, 0);
     start->h = heuristic(start, goal);
@@ -193,7 +200,19 @@ Layer1PlanResult Layer1Plan::search(Layer1GraphNode *start, Layer1GraphNode *goa
             }
         }
     }
+    reset();
     auto end_time = std::chrono::high_resolution_clock::now();
     result.planTime = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count();
     return result;
+}
+
+Layer1PlanResult layer1::Layer1Plan::search(cv::Point3d start, cv::Point3d goal)
+{
+    auto start_node = (*graph)(start.x, start.y, start.z);
+    auto goal_node = (*graph)(goal.x, goal.y, goal.z);
+    if (start_node == nullptr || goal_node == nullptr)
+    {
+        return Layer1PlanResult();
+    }
+    return search(start_node, goal_node);
 }

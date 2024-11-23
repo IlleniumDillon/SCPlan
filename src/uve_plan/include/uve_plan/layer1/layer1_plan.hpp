@@ -13,8 +13,8 @@ public:
 public:
     bool success = false;
     int iterations = 0;
-    double planTime = 0;
-    double cost = 0;
+    double planTime = std::numeric_limits<double>::max();
+    double cost = std::numeric_limits<double>::max();
     std::vector<cv::Point3d> path;
     std::vector<cv::Point2d> vw;
 };
@@ -35,7 +35,7 @@ public:
         std::vector<cv::Point2d>& vws);
     bool endCondition(Layer1GraphNode* node, Layer1GraphNode* goal);
     Layer1PlanResult search(Layer1GraphNode* start, Layer1GraphNode* goal);
-
+    Layer1PlanResult search(cv::Point3d start, cv::Point3d goal);
 
 public:
     std::multimap<Layer1GraphNodeCost, Layer1GraphNode*> open_set;

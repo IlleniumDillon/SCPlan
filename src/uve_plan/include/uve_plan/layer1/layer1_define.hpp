@@ -82,7 +82,7 @@ public:
         parent = nullptr;
         flag = NOT_VISITED;
         collision_static = true;
-        collision_dynamic = true;
+        collision_dynamic = false;
         vw = cv::Point2d(0, 0);
     };
     ~Layer1GraphNode() = default;
@@ -145,7 +145,8 @@ public:
             std::vector<cv::Point2f> points;
             for (auto& point : obstacle.shape.points)
             {
-                points.push_back(cv::Point2f(point.x, point.y));
+                points.push_back(cv::Point2f(point.x * cos(obstacle.pose.theta) - point.y * sin(obstacle.pose.theta) + obstacle.pose.x,
+                                            point.x * sin(obstacle.pose.theta) + point.y * cos(obstacle.pose.theta) + obstacle.pose.y));
             }
             static_obstacles.push_back(points);
         }
@@ -276,6 +277,7 @@ public:
 
             if (cv::pointPolygonTest(ground, p, false) <= 0)
             {
+                // std::cout << "g";
                 return true;
             }
         }
@@ -285,10 +287,11 @@ public:
         {
             if (cv::intersectConvexConvex(shape, obstacle, temp))
             {
+                // std::cout << "o";
                 return true;
             }
         }
-
+        // std::cout << "f";
         return false;
     }
 
@@ -321,6 +324,14 @@ public:
                     state.pose.y + std::sin(state.pose.theta) * zero[i].x + std::cos(state.pose.theta) * zero[i].y,
                     state.pose.theta + zero[i].z
                 );
+                if (last[i].z > M_PI)
+                {
+                    last[i].z -= 2 * M_PI;
+                }
+                else if (last[i].z <= -M_PI)
+                {
+                    last[i].z += 2 * M_PI;
+                }
                 auto node = (*this)(last[i].x, last[i].y, last[i].z);
                 if (node)
                 {

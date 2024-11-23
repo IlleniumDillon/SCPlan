@@ -9,6 +9,8 @@
 #include "geometry_msgs/msg/pose2_d.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/pose_array.hpp"
+#include "nav_msgs/msg/path.hpp"
+#include "nav_msgs/msg/occupancy_grid.hpp"
 
 using namespace layer1;
 
@@ -26,7 +28,7 @@ public:
 public:
     std::shared_ptr<Layer1GridGraph> graph;
     Layer1Plan plan;
-    geometry_msgs::msg::PoseArray path;
+    nav_msgs::msg::Path path;
     geometry_msgs::msg::Pose2D start;
     geometry_msgs::msg::Pose2D goal;
     uvs_message::srv::UvQueryWorld::Response world;
@@ -36,7 +38,8 @@ public:
     rclcpp::Subscription<uve_message::msg::UveDynamicStatusList>::SharedPtr dynamic_sub;
     rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr start_sub;
     rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr goal_sub;
-    rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr path_pub;
+    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub;
+    rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr map_pub;
 };
 
 #endif // LAYER1_NODE_HPP

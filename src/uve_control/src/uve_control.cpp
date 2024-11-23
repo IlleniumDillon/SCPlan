@@ -105,11 +105,19 @@ void UveControl::execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<u
             x_ref(waypoint) = goal->plan_result[traceNum].trace[waypoint].x;
             y_ref(waypoint) = goal->plan_result[traceNum].trace[waypoint].y;
             theta_ref(waypoint) = goal->plan_result[traceNum].trace[waypoint].theta;
-            if (theta_ref(waypoint) < 0)
+            // if (theta_ref(waypoint) < 0)
+            // {
+            //     theta_ref(waypoint) += 2 * M_PI;
+            // }
+            // if (theta_ref(waypoint) >= 2*M_PI)
+            // {
+            //     theta_ref(waypoint) -= 2 * M_PI;
+            // }
+            if (theta_ref(waypoint) <= -M_PI)
             {
                 theta_ref(waypoint) += 2 * M_PI;
             }
-            if (theta_ref(waypoint) >= 2*M_PI)
+            if (theta_ref(waypoint) > M_PI)
             {
                 theta_ref(waypoint) -= 2 * M_PI;
             }
@@ -159,11 +167,19 @@ void UveControl::execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<u
 void UveControl::status_callback(const geometry_msgs::msg::Pose2D::SharedPtr msg)
 {
     status_ = *msg;
-    if (status_.theta < 0)
+    // if (status_.theta < 0)
+    // {
+    //     status_.theta += 2 * M_PI;
+    // }
+    // if (status_.theta >= 2*M_PI)
+    // {
+    //     status_.theta -= 2 * M_PI;
+    // }
+    if (status_.theta <= -M_PI)
     {
         status_.theta += 2 * M_PI;
     }
-    if (status_.theta >= 2*M_PI)
+    if (status_.theta > M_PI)
     {
         status_.theta -= 2 * M_PI;
     }

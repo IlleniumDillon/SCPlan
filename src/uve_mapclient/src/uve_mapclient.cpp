@@ -51,6 +51,7 @@ void UveMapClient::pose_list_callback(const uvs_message::msg::UvOptPoseList::Sha
         {
             if (pose_map_[item.name] == -1)
             {
+                // RCLCPP_INFO(get_logger(), "agent %s", item.name.c_str());
                 agent_status_.x = item.pose.position.x;
                 agent_status_.y = item.pose.position.y;
                 agent_status_.theta = tf2::getYaw(item.pose.orientation);
@@ -81,7 +82,7 @@ void UveMapClient::timer_10hz_callback()
 
 void UveMapClient::timer_50hz_callback()
 {
-    agent_status_ = cur_world_.agents[0].pose;
+    // agent_status_ = cur_world_.agents[0].pose;
     pub_agent_status_->publish(agent_status_);
 }
 
@@ -89,5 +90,6 @@ void UveMapClient::cur_world_callback(const std::shared_ptr<rmw_request_id_t> re
 {
     (void) request_header;
     (void) request;
-    response = std::make_shared<uvs_message::srv::UvQueryWorld::Response>(cur_world_);
+    // response = std::make_shared<uvs_message::srv::UvQueryWorld::Response>(cur_world_);
+    *response = cur_world_;
 }
