@@ -73,7 +73,7 @@ void Layer1Node::goalCallback(const geometry_msgs::msg::PoseStamped::SharedPtr m
     }
 
     graph->updateDynamic(dynamic);
-    plan.bindGraph(*graph);
+    plan.bindGraph(graph.get());
     auto result = plan.search(start, goal);
 
     RCLCPP_INFO(get_logger(), "search result: %d, iterations: %d, planTime: %f, cost: %f", result.success, result.iterations, result.planTime / 10.0E9, result.cost);
@@ -111,7 +111,7 @@ void Layer1Node::goalCallback(const geometry_msgs::msg::PoseStamped::SharedPtr m
             {
                 if ((*graph)(x_, y_, theta_)->collision_static || (*graph)(x_, y_, theta_)->collision_dynamic)
                 {
-                    value += 5;
+                    value += 1;
                 }
             }
             map.data[x_ + y_ * graph->size.x] = value;

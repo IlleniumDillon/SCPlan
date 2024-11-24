@@ -36,13 +36,29 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/include/uve_plan/layer3
 )
 
-file (GLOB UVE_LAYER_1_FILES ${CMAKE_SOURCE_DIR}/src/layer1/layer1_plan.cpp)
+file (GLOB UVE_LAYER_1_FILES ${CMAKE_SOURCE_DIR}/src/layer1/layer1_plan.cpp ${CMAKE_SOURCE_DIR}/src/layer1/layer1_define.cpp)
 
 BUILD_EXEC(
   TARGET uve_layer1_plan
   SOURCES ${UVE_LAYER_1_FILES} ${CMAKE_SOURCE_DIR}/src/layer1/layer1_node.cpp ${CMAKE_SOURCE_DIR}/src/layer1/layer1_node_main.cpp
   DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message rclcpp_action action_msgs OpenCV
 )
+
+target_link_directories(
+  uve_layer1_plan
+  PUBLIC
+  /home/jxl3028/Desktop/uvExpSupport/install/uvs_tools/lib
+)
+target_link_libraries(
+  uve_layer1_plan
+  jsoncpp
+)
+# target_compile_definitions(
+#   uve_layer1_plan
+#   PRIVATE
+#   CONFIG_INSTALL_DIR="/home/jxl3028/Desktop/uvExpSupport/install/uvs_tools/share/uve_plan/config"
+#   CONDIF_SOURCE_DIR="/home/jxl3028/Desktop/uvExpSupport/src/uve_plan/config"
+# )
 
 # BUILD_EXEC(
 #   TARGET uve_plan_astar_test
@@ -55,6 +71,13 @@ BUILD_EXEC(
 #   SOURCES ${UVE_PLAN_SRC_FILES} ${CMAKE_SOURCE_DIR}/src/hybrid_astar_test.cpp
 #   DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message rclcpp_action action_msgs
 # )
+
+install(
+  DIRECTORY
+    config
+  DESTINATION
+    share/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

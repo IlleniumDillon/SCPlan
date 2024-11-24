@@ -25,7 +25,7 @@ public:
     ~Layer1Plan() = default;
 
     void setExecuteSpace(double max_v, double max_w, int step_v, int step_w, double dt);
-    void bindGraph(Layer1GridGraph& graph);
+    void bindGraph(Layer1GridGraph* graph);
     void reset();
     Layer1GraphNodeCost heuristic(Layer1GraphNode* node, Layer1GraphNode* goal);
     void getNeighbors(Layer1GraphNode* node, 

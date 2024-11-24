@@ -3,6 +3,9 @@
 
 using namespace std::chrono_literals;
 
+#define CONDIF_SOURCE_DIR "/home/jxl3028/Desktop/SCPlan_Exp/src/uve_plan/config"
+#define CONFIG_INSTALL_DIR "/home/jxl3028/Desktop/SCPlan_Exp/install/uve_plan/share/uve_plan/config"
+
 int main(int argc, char *argv[])
 {
     rclcpp::init(argc, argv);
@@ -26,7 +29,8 @@ int main(int argc, char *argv[])
         auto response = result.get();
         node->world = *response;
 
-        node->init();
+        // node->init();
+        node->graph = std::make_shared<Layer1GridGraph>(std::string(CONDIF_SOURCE_DIR)+"/free.json");
         node->start_all();
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "INIT DONE");
     }
@@ -36,6 +40,10 @@ int main(int argc, char *argv[])
     }
 
     rclcpp::spin(node);
+
+    // node->graph->save(std::string(CONDIF_SOURCE_DIR)+"/free.json");
+    // node->graph->save(std::string(CONDIF_SOURCE_DIR)+"/free.json");
+
     rclcpp::shutdown();
     return 0;
 }

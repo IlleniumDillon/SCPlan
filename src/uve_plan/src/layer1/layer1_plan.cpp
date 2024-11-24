@@ -4,7 +4,7 @@
 
 using namespace layer1;
 
-void layer1::Layer1Plan::setExecuteSpace(double max_v, double max_w, int step_v, int step_w, double dt)
+void Layer1Plan::setExecuteSpace(double max_v, double max_w, int step_v, int step_w, double dt)
 {
     vw_space.clear();
     neighbor_space.clear();
@@ -36,10 +36,10 @@ void layer1::Layer1Plan::setExecuteSpace(double max_v, double max_w, int step_v,
                 double L = std::sqrt(2*R*R*(1 - std::cos(w * dt)));
                 neighbor.x = L;
             }
-            vw_space.push_back(cv::Point2d(v, w));
-            neighbor_space.push_back(neighbor);
+            vw_space.emplace_back(cv::Point2d(v, w));
+            neighbor_space.emplace_back(neighbor);
 
-            neighbor_cost.push_back(std::abs(v*dt));
+            neighbor_cost.emplace_back(std::abs(v*dt));
             if (v < 0)
             {
                 neighbor_cost.back() *= 2;
@@ -52,9 +52,10 @@ void layer1::Layer1Plan::setExecuteSpace(double max_v, double max_w, int step_v,
     }
 }
 
-void Layer1Plan::bindGraph(Layer1GridGraph &graph)
+void Layer1Plan::bindGraph(Layer1GridGraph* g)
 {
-    this->graph = &graph;
+    this->graph = g;
+    
 }
 
 void Layer1Plan::reset()
@@ -80,7 +81,7 @@ Layer1GraphNodeCost Layer1Plan::heuristic(Layer1GraphNode *node, Layer1GraphNode
     return Layer1GraphNodeCost(std::sqrt(diff.x * diff.x + diff.y * diff.y), 0);
 }
 
-void layer1::Layer1Plan::getNeighbors(Layer1GraphNode *node, std::vector<Layer1GraphNode *> &neighbors, std::vector<Layer1GraphNodeCost> &costs, std::vector<cv::Point3f> &neighbor_state, std::vector<cv::Point2d> &vws)
+void Layer1Plan::getNeighbors(Layer1GraphNode *node, std::vector<Layer1GraphNode *> &neighbors, std::vector<Layer1GraphNodeCost> &costs, std::vector<cv::Point3f> &neighbor_state, std::vector<cv::Point2d> &vws)
 {
     neighbors.clear();
     costs.clear();
@@ -109,13 +110,14 @@ void layer1::Layer1Plan::getNeighbors(Layer1GraphNode *node, std::vector<Layer1G
             state.z += 2*M_PI;
         }
         auto neighbor = (*graph)(state.x, state.y, state.z);
-        if (neighbor != nullptr && !neighbor->collision_static && !neighbor->collision_dynamic && neighbor->flag != IN_CLOSESET)
+
+        if ((neighbor != nullptr) && (!neighbor->collision_static) && (!neighbor->collision_dynamic) && (neighbor->flag != IN_CLOSESET))
         {
             // std::cout << "neighbor: " << state.x << "," << state.y << "," << state.z << std::endl;
-            neighbors.push_back(neighbor);
-            costs.push_back(Layer1GraphNodeCost(neighbor_cost[i], 0));
-            neighbor_state.push_back(state);
-            vws.push_back(vw_space[i]);
+            neighbors.emplace_back(neighbor);
+            costs.emplace_back(Layer1GraphNodeCost(neighbor_cost[i], 0));
+            neighbor_state.emplace_back(state);
+            vws.emplace_back(vw_space[i]);
         }
     }
 }
@@ -146,6 +148,7 @@ Layer1PlanResult Layer1Plan::search(Layer1GraphNode *start, Layer1GraphNode *goa
     std::vector<Layer1GraphNodeCost> costs;
     std::vector<cv::Point3f> neighbor_state;
     std::vector<cv::Point2d> vws;
+    Layer1GraphNodeCost tentative_g;
 
     while (!open_set.empty())
     {
@@ -157,8 +160,8 @@ Layer1PlanResult Layer1Plan::search(Layer1GraphNode *start, Layer1GraphNode *goa
             result.cost = current->g.distance;
             while (current != nullptr)
             {
-                result.path.push_back(current->state);
-                result.vw.push_back(current->vw);
+                result.path.emplace_back(current->state);
+                result.vw.emplace_back(current->vw);
                 current = current->parent;
             }
             std::reverse(result.path.begin(), result.path.end());
@@ -166,7 +169,7 @@ Layer1PlanResult Layer1Plan::search(Layer1GraphNode *start, Layer1GraphNode *goa
             break;
         }
         open_set.erase(current->it);
-        close_set.push_back(current);
+        close_set.emplace_back(current);
         current->flag = IN_CLOSESET;
         getNeighbors(current, neighbors, costs, neighbor_state, vws);
         for (int i = 0; i < neighbors.size(); i++)
@@ -175,7 +178,7 @@ Layer1PlanResult Layer1Plan::search(Layer1GraphNode *start, Layer1GraphNode *goa
             auto cost = costs[i];
             auto state = neighbor_state[i];
             auto vw = vws[i];
-            Layer1GraphNodeCost tentative_g = current->g + cost;
+            tentative_g = current->g + cost;
             if (neighbor->flag != IN_OPENSET)
             {
                 neighbor->state = state;
@@ -206,7 +209,7 @@ Layer1PlanResult Layer1Plan::search(Layer1GraphNode *start, Layer1GraphNode *goa
     return result;
 }
 
-Layer1PlanResult layer1::Layer1Plan::search(cv::Point3d start, cv::Point3d goal)
+Layer1PlanResult Layer1Plan::search(cv::Point3d start, cv::Point3d goal)
 {
     auto start_node = (*graph)(start.x, start.y, start.z);
     auto goal_node = (*graph)(goal.x, goal.y, goal.z);
