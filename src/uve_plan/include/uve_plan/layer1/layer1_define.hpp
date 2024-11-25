@@ -140,6 +140,8 @@ public:
     void copyFrom(Layer1GridGraph& other);
 
     void save(std::string path);
+
+    void ignoreDynamicCollision(std::string name);
     // void setGround
 public:
     cv::Point3d origin;
@@ -156,6 +158,7 @@ public:
     std::vector<std::vector<cv::Point3f>> dynamic_collisions_zero;
     std::vector<std::vector<cv::Point3f>> dynamic_collisions_last;
     std::map<std::string, int> dynamic_map;
+    std::vector<cv::Point3d> dynamic_pose;
     std::vector<cv::Point2f> agent_shape;
 
     double XY;

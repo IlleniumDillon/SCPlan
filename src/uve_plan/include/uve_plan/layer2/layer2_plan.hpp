@@ -32,13 +32,17 @@ public:
     ~Layer2Plan() = default;
 
     void setMaxThread(int num);
-    void setInitGraph(layer1::Layer1GridGraph& graph);
+    void setInitGraph(layer1::Layer1GridGraph& freeGraph, layer1::Layer1GridGraph& carryGraph);
+    void setWorldDSCP(uvs_message::srv::UvQueryWorld::Response& w);
     void setFreeExecuteSpace(double max_v, double max_w, int step_v, int step_w, double dt);
     void setCarryExecuteSpace(double max_v, double max_w, int step_v, int step_w, double dt);
+    void updateGraph(uve_message::msg::UveDynamicStatusList& nstate);
     Layer2PlanResult search(cv::Point3d Astate, std::string Cname, cv::Point3d Cgoal, cv::Point3d Agoal);
 public:
     int max_thread = 1;
-    layer1::Layer1GridGraph initGraph;
+    // layer1::Layer1GridGraph freeGraph;
+    // layer1::Layer1GridGraph carryGraph;
+    uvs_message::srv::UvQueryWorld::Response world;
     std::vector<double> freeConfig;
     std::vector<double> carryConfig;
 
@@ -48,8 +52,11 @@ public:
     std::vector<std::future<Layer2PlanResult>> futures;
     std::multimap<double, Layer2PlanResult> results;
 
+    std::string cur_Cname;
+    cv::Point3d cur_Cgoal;
+
 private:
-    Layer2PlanResult searchThread(cv::Point3d Astart, cv::Point3d CAstart, cv::Point3d CAgoal, cv::Point3d Agoal);
+    Layer2PlanResult searchThread(int id, cv::Point3d Astart, cv::Point3d CAstart, cv::Point3d CAgoal, cv::Point3d Agoal);
 };
 
 } // namespace layer2

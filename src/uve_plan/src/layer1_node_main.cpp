@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
         node->world = *response;
 
         // node->init();
-        node->graph = std::make_shared<Layer1GridGraph>(std::string(CONDIF_SOURCE_DIR)+"/free.json");
+        // node->graph = std::make_shared<Layer1GridGraph>(std::string(CONDIF_SOURCE_DIR)+"/free.json");
         node->start_all();
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "INIT DONE");
     }

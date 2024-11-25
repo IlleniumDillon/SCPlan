@@ -39,7 +39,7 @@ NonInteractiveCarry::NonInteractiveCarry()
         pub_topic_property_, qos_profile_);
 
     sub_topic_property_ = new rviz_common::properties::StringProperty(
-        "Sub Topic", "model_states",
+        "Sub Topic", "uve_dynamic_status",
         "The topic on which to subscribe model state list.",
         getPropertyContainer(), SLOT(updateTopic()), this);
 
@@ -58,7 +58,7 @@ void NonInteractiveCarry::onInitialize()
 
     pub_qos_profile_property_->initialize(
         [this](rclcpp::QoS profile) {this->qos_profile_ = profile;});
-    setName("NSCPCarryGoal");
+    setName("NonInteractive carry");
     updateTopic();
 }
 
@@ -121,11 +121,20 @@ int uve_rviz_plugin::NonInteractiveCarry::onPoseSet(double x, double y, double t
             return (Render);
         }
     }
+    else if (count == 1)
+    {
+        goal_.goal_cargo.x = x;
+        goal_.goal_cargo.y = y;
+        goal_.goal_cargo.theta = theta;
+        count = 2;
+        logPose("NSCPCarryGoal", x, y, theta, "map");
+        return (Render);
+    }
     else
     {
-        goal_.goal.x = x;
-        goal_.goal.y = y;
-        goal_.goal.theta = theta;
+        goal_.goal_agent.x = x;
+        goal_.goal_agent.y = y;
+        goal_.goal_agent.theta = theta;
         publisher_->publish(goal_);
         count = 0;
         logPose("NSCPCarryGoal", x, y, theta, "map");

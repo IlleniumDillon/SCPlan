@@ -250,6 +250,10 @@ bool Layer1GridGraph::setStaticCollision(double x, double y, double theta)
 
 void Layer1GridGraph::updateDynamic(uve_message::msg::UveDynamicStatusList &nstate)
 {
+    if (dynamic_pose.size() < nstate.list.size())
+    {
+        dynamic_pose.resize(nstate.list.size());
+    }
     for (auto& last : dynamic_collisions_last)
     {
         for (auto& point : last)
@@ -268,6 +272,7 @@ void Layer1GridGraph::updateDynamic(uve_message::msg::UveDynamicStatusList &nsta
         {
             continue;
         }
+        dynamic_pose[it->second] = cv::Point3d(state.pose.x, state.pose.y, state.pose.theta);
         auto& last = dynamic_collisions_last[it->second];
         auto& zero = dynamic_collisions_zero[it->second];
         // int cont = 0;
@@ -305,6 +310,7 @@ void Layer1GridGraph::copyFrom(Layer1GridGraph &other)
     origin = other.origin;
     resolution = other.resolution;
     size = other.size;
+    XY = other.XY;
     state_min = other.state_min;
     state_max = other.state_max;
     nodes.resize(size.x * size.y * size.z);
@@ -325,8 +331,8 @@ void Layer1GridGraph::copyFrom(Layer1GridGraph &other)
     dynamic_collisions_zero = other.dynamic_collisions_zero;
     dynamic_collisions_last = other.dynamic_collisions_last;
     dynamic_map = other.dynamic_map;
+    dynamic_pose = other.dynamic_pose;
     agent_shape = other.agent_shape;
-    XY = other.XY;
 }
 
 void Layer1GridGraph::save(std::string path)
@@ -412,4 +418,21 @@ void Layer1GridGraph::save(std::string path)
     // }
     ofs << root;
     ofs.close();
+}
+
+void Layer1GridGraph::ignoreDynamicCollision(std::string name)
+{
+    auto it = dynamic_map.find(name);
+    if (it == dynamic_map.end())
+    {
+        return;
+    }
+    for (auto& point : dynamic_collisions_last[it->second])
+    {
+        auto node = (*this)(point.x, point.y, point.z);
+        if (node)
+        {
+            node->collision_dynamic = false;
+        }
+    }
 }

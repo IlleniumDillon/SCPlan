@@ -28,7 +28,7 @@ void uve_rviz_plugin::NonInteractiveMove::onInitialize()
     PoseToolBase::onInitialize();
     qos_profile_property_->initialize(
         [this](rclcpp::QoS profile) {this->qos_profile_ = profile;});
-    setName("Interactive move");
+    setName("NonInteractive move");
     updateTopic();
 }
 

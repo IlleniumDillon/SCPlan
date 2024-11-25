@@ -30,10 +30,10 @@ public:
 
         uvs_message::srv::UvQueryWorld::Response world_carry = world;
         auto cargo = world_carry.cargos[0];
-        cv::Point2f leftanchor(0, std::numeric_limits<double>::max());
+        cv::Point2f leftanchor(std::numeric_limits<double>::max(), 0);
         for (auto &p : cargo.anchors)
         {
-            if (p.x < leftanchor.y)
+            if (p.x < leftanchor.x)
             {
                 leftanchor = cv::Point2f(p.x, p.y);
             }

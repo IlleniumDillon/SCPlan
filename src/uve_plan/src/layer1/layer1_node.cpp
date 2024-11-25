@@ -3,7 +3,25 @@
 Layer1Node::Layer1Node()
     : Node("layer1_node")
 {
-    plan.setExecuteSpace(0.3, M_PI / 4, 2, 2, 0.5);
+    declare_parameter("free_graph_path");
+    declare_parameter("execute_space.max_v");
+    declare_parameter("execute_space.max_w");
+    declare_parameter("execute_space.step_v");
+    declare_parameter("execute_space.step_w");
+    declare_parameter("execute_space.dt");
+
+    std::string free_graph_path = get_parameter("free_graph_path").as_string();
+    double max_v = get_parameter("execute_space.max_v").as_double();
+    double max_w = get_parameter("execute_space.max_w").as_double();
+    int step_v = get_parameter("execute_space.step_v").as_int();
+    int step_w = get_parameter("execute_space.step_w").as_int();
+    double dt = get_parameter("execute_space.dt").as_double();
+
+    graph = std::make_shared<Layer1GridGraph>(free_graph_path);
+
+    // plan.setExecuteSpace(0.3, M_PI / 4, 2, 2, 0.5);
+    plan.setExecuteSpace(max_v, max_w, step_v, step_w, dt);
+
     world_client = create_client<uvs_message::srv::UvQueryWorld>("uve_query_world");
     map_pub = create_publisher<nav_msgs::msg::OccupancyGrid>("mmap", 1);
 }
@@ -44,7 +62,7 @@ void Layer1Node::start_all()
 {
     dynamic_sub = create_subscription<uve_message::msg::UveDynamicStatusList>("uve_dynamic_status", 1, std::bind(&Layer1Node::dynamicCallback, this, std::placeholders::_1));
     start_sub = create_subscription<geometry_msgs::msg::Pose2D>("uve_agent_status", 1, std::bind(&Layer1Node::startCallback, this, std::placeholders::_1));
-    goal_sub = create_subscription<geometry_msgs::msg::PoseStamped>("inter_move_goal", 1, std::bind(&Layer1Node::goalCallback, this, std::placeholders::_1));
+    goal_sub = create_subscription<geometry_msgs::msg::PoseStamped>("noninter_move_goal", 1, std::bind(&Layer1Node::goalCallback, this, std::placeholders::_1));
     path_pub = create_publisher<nav_msgs::msg::Path>("path", 1);
 }
 

@@ -1,0 +1,27 @@
+/uve_layer1_plan:
+  ros__parameters:
+    free_graph_path: /home/jxl3028/Desktop/SCPlan_Exp/src/uve_plan/config/free.json
+    execute_space:
+      max_v: 0.3
+      max_w: 0.78539816339744830961566084582
+      step_v: 2
+      step_w: 2
+      dt: 0.5
+/uvs_mapserver:
+  ros__parameters:
+    world_name: "jxl3028"
+/uve_simoptitrack:
+  ros__parameters:
+    sim_opt_name: ["uv05", "c1", "c2", "c3", "c4"]
+    sim_opt_pose: [
+      0.324, -3.24, 0.0,
+      -2.0, -0.864, 0.0,
+      -0.258, 0.249, 0.0, 
+      1.52, -0.316, 0.0,
+      -0.274, 2.59, 0.0
+      # 0.324, -3.24, 0.0,
+      # 1.52, -0.316, 0.0,
+      # 1.52, -0.316, 0.0,
+      # 1.52, -0.316, 0.0,
+      # 1.52, -0.316, 0.0
+    ]
