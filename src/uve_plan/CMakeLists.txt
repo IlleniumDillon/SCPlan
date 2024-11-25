@@ -36,14 +36,13 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/include/uve_plan/layer3
 )
 
-file (GLOB UVE_LAYER_1_FILES ${CMAKE_SOURCE_DIR}/src/layer1/layer1_plan.cpp ${CMAKE_SOURCE_DIR}/src/layer1/layer1_define.cpp)
+file (GLOB UVE_LAYER_1_FILES ${CMAKE_SOURCE_DIR}/src/layer1/*cpp)
 
 BUILD_EXEC(
   TARGET uve_layer1_plan
-  SOURCES ${UVE_LAYER_1_FILES} ${CMAKE_SOURCE_DIR}/src/layer1/layer1_node.cpp ${CMAKE_SOURCE_DIR}/src/layer1/layer1_node_main.cpp
+  SOURCES ${UVE_LAYER_1_FILES} ${CMAKE_SOURCE_DIR}/src/layer1_node_main.cpp
   DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message rclcpp_action action_msgs OpenCV
 )
-
 target_link_directories(
   uve_layer1_plan
   PUBLIC
@@ -51,6 +50,21 @@ target_link_directories(
 )
 target_link_libraries(
   uve_layer1_plan
+  jsoncpp
+)
+
+BUILD_EXEC(
+  TARGET uve_plan_genmap
+  SOURCES ${UVE_LAYER_1_FILES} ${CMAKE_SOURCE_DIR}/src/generate_map_main.cpp
+  DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message rclcpp_action action_msgs OpenCV
+)
+target_link_directories(
+  uve_plan_genmap
+  PUBLIC
+  /home/jxl3028/Desktop/uvExpSupport/install/uvs_tools/lib
+)
+target_link_libraries(
+  uve_plan_genmap
   jsoncpp
 )
 # target_compile_definitions(
@@ -75,6 +89,7 @@ target_link_libraries(
 install(
   DIRECTORY
     config
+    launch
   DESTINATION
     share/${PROJECT_NAME}
 )

@@ -1,0 +1,6 @@
+/uve_plan_genmap:
+  ros__parameters:
+    save_path: /home/jxl3028/Desktop/SCPlan_Exp/src/uve_plan/config
+    free_name: free
+    carry_name: carry
+    resolution: [0.05, 0.05, 0.39269908169872415480783042291]

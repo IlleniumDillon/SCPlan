@@ -1,0 +1,3 @@
+# generate map
+ros2 launch uve_launch uve_launch_sim.launch.py
+ros2 launch uve_plan uve_plan_genmap.launch.py

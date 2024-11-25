@@ -136,6 +136,11 @@ Layer1PlanResult Layer1Plan::search(Layer1GraphNode *start, Layer1GraphNode *goa
 {
     result = Layer1PlanResult();
 
+    if (start->collision_dynamic || start->collision_static || goal->collision_dynamic || goal->collision_static)
+    {
+        return result;
+    }
+
     auto start_time = std::chrono::high_resolution_clock::now();
     start->g = Layer1GraphNodeCost(0, 0);
     start->h = heuristic(start, goal);
