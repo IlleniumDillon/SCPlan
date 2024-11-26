@@ -26,8 +26,8 @@ public:
     void startCallback(const geometry_msgs::msg::Pose2D::SharedPtr msg);
     void goalCallback(const uve_message::msg::NonInteractiveCarryGoal::SharedPtr msg);
 public:
-    std::shared_ptr<Layer1GridGraph> freeGraph;
-    std::shared_ptr<Layer1GridGraph> carryGraph;
+    Layer1GridGraph freeGraph;
+    Layer1GridGraph carryGraph;
     Layer2Plan plan;
     nav_msgs::msg::Path path;
     geometry_msgs::msg::Pose2D start;

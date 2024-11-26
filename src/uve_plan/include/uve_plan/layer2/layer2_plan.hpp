@@ -33,6 +33,7 @@ public:
 
     void setMaxThread(int num);
     void setInitGraph(layer1::Layer1GridGraph& freeGraph, layer1::Layer1GridGraph& carryGraph);
+    void setInitGraph(std::shared_ptr<layer1::Layer1GridGraph> freeGraph, std::shared_ptr<layer1::Layer1GridGraph> carryGraph);
     void setWorldDSCP(uvs_message::srv::UvQueryWorld::Response& w);
     void setFreeExecuteSpace(double max_v, double max_w, int step_v, int step_w, double dt);
     void setCarryExecuteSpace(double max_v, double max_w, int step_v, int step_w, double dt);
@@ -46,10 +47,12 @@ public:
     std::vector<double> freeConfig;
     std::vector<double> carryConfig;
 
+    uve_message::msg::UveDynamicStatusList dynamic_state;
+
     std::vector<layer1::Layer1Plan> plans;
     std::vector<layer1::Layer1GridGraph> freeGraphs;
     std::vector<layer1::Layer1GridGraph> carryGraphs;
-    std::vector<std::future<Layer2PlanResult>> futures;
+    // std::vector<std::future<Layer2PlanResult>> futures;
     std::multimap<double, Layer2PlanResult> results;
 
     std::string cur_Cname;

@@ -115,79 +115,7 @@ Layer1GridGraph::Layer1GridGraph(WorldDscp& world, cv::Point3d res)
 
 Layer1GridGraph::Layer1GridGraph(std::string path)
 {
-    std::ifstream ifs(path);
-    if (!ifs.is_open())
-    {
-        throw std::runtime_error("file not found");
-    }
-    Json::Reader reader;
-    Json::Value root;
-    if (!reader.parse(ifs, root, false))
-    {
-        throw std::runtime_error("json parse error");
-    }
-    ifs.close();
-    // origin
-    Json::Value origin = root["origin"];
-    this->origin = cv::Point3d(origin[0].asDouble(), origin[1].asDouble(), origin[2].asDouble());
-    // resolution
-    Json::Value resolution = root["resolution"];
-    this->resolution = cv::Point3d(resolution[0].asDouble(), resolution[1].asDouble(), resolution[2].asDouble());
-    // size
-    Json::Value size = root["size"];
-    this->size = cv::Point3i(size[0].asInt(), size[1].asInt(), size[2].asInt());
-    this->XY = this->size.x * this->size.y;
-    // state_min
-    Json::Value state_min = root["state_min"];
-    this->state_min = cv::Point3d(state_min[0].asDouble(), state_min[1].asDouble(), state_min[2].asDouble());
-    // state_max
-    Json::Value state_max = root["state_max"];
-    this->state_max = cv::Point3d(state_max[0].asDouble(), state_max[1].asDouble(), state_max[2].asDouble());
-
-    nodes.resize(this->size.x * this->size.y * this->size.z);
-    for (int z = 0; z < this->size.z; z++)
-    {
-        for (int y = 0; y < this->size.y; y++)
-        {
-            for (int x = 0; x < this->size.x; x++)
-            {
-                nodes[x + y * this->size.x + z * this->XY] = new Layer1GraphNode();
-                nodes[x + y * this->size.x + z * this->XY]->state = cv::Point3d(this->state_min.x + x * this->resolution.x,
-                                                                    this->state_min.y + y * this->resolution.y,
-                                                                    this->state_min.z + z * this->resolution.z);
-                nodes[x + y * this->size.x + z * this->XY]->index = cv::Point3i(x, y, z);
-            }
-        }
-    }
-
-    // static_collision
-    Json::Value static_collision = root["static_collision"];
-    for (auto & v : static_collision)
-    {
-        auto node = (*this)(v[0].asInt(), v[1].asInt(), v[2].asInt());
-        if (node)
-        {
-            node->collision_static = true;
-        }
-    }
-    // dynamic_map
-    Json::Value dynamic_map = root["dynamic_map"];
-    for (auto & v : dynamic_map)
-    {
-        this->dynamic_map[v[0].asString()] = v[1].asInt();
-    }
-    // dynamic_collision_zero
-    Json::Value dynamic_collision_zero = root["dynamic_collision_zero"];
-    std::vector<cv::Point3f> zero;
-    for (auto & v : dynamic_collision_zero)
-    {
-        zero.emplace_back(cv::Point3f(v[0].asDouble(), v[1].asDouble(), v[2].asDouble()));
-    }
-    for (int i = 0; i < dynamic_map.size(); i++)
-    {
-        this->dynamic_collisions_zero.emplace_back(zero);
-    }
-    this->dynamic_collisions_last = this->dynamic_collisions_zero;
+    load(path);
 }
 
 Layer1GridGraph::~Layer1GridGraph()
@@ -321,7 +249,7 @@ void Layer1GridGraph::copyFrom(Layer1GridGraph &other)
             for (int x = 0; x < size.x; x++)
             {
                 nodes[x + y * size.x + z * XY] = new Layer1GraphNode();
-                nodes[x + y * size.x + z * XY] = other.nodes[x + y * size.x + z * XY];
+                *nodes[x + y * size.x + z * XY] = *other.nodes[x + y * size.x + z * XY];
             }
         }
     }
@@ -333,6 +261,36 @@ void Layer1GridGraph::copyFrom(Layer1GridGraph &other)
     dynamic_map = other.dynamic_map;
     dynamic_pose = other.dynamic_pose;
     agent_shape = other.agent_shape;
+}
+
+void layer1::Layer1GridGraph::copyFrom(std::shared_ptr<Layer1GridGraph> other)
+{
+    origin = other->origin;
+    resolution = other->resolution;
+    size = other->size;
+    XY = other->XY;
+    state_min = other->state_min;
+    state_max = other->state_max;
+    nodes.resize(size.x * size.y * size.z);
+    for (int z = 0; z < size.z; z++)
+    {
+        for (int y = 0; y < size.y; y++)
+        {
+            for (int x = 0; x < size.x; x++)
+            {
+                nodes[x + y * size.x + z * XY] = new Layer1GraphNode();
+                *nodes[x + y * size.x + z * XY] = *other->nodes[x + y * size.x + z * XY];
+            }
+        }
+    }
+    ground = other->ground;
+    static_obstacles = other->static_obstacles;
+    dynamic_shapes = other->dynamic_shapes;
+    dynamic_collisions_zero = other->dynamic_collisions_zero;
+    dynamic_collisions_last = other->dynamic_collisions_last;
+    dynamic_map = other->dynamic_map;
+    dynamic_pose = other->dynamic_pose;
+    agent_shape = other->agent_shape;
 }
 
 void Layer1GridGraph::save(std::string path)
@@ -418,6 +376,83 @@ void Layer1GridGraph::save(std::string path)
     // }
     ofs << root;
     ofs.close();
+}
+
+void layer1::Layer1GridGraph::load(std::string path)
+{
+    std::ifstream ifs(path);
+    if (!ifs.is_open())
+    {
+        throw std::runtime_error("file not found");
+    }
+    Json::Reader reader;
+    Json::Value root;
+    if (!reader.parse(ifs, root, false))
+    {
+        throw std::runtime_error("json parse error");
+    }
+    ifs.close();
+    // origin
+    Json::Value origin = root["origin"];
+    this->origin = cv::Point3d(origin[0].asDouble(), origin[1].asDouble(), origin[2].asDouble());
+    // resolution
+    Json::Value resolution = root["resolution"];
+    this->resolution = cv::Point3d(resolution[0].asDouble(), resolution[1].asDouble(), resolution[2].asDouble());
+    // size
+    Json::Value size = root["size"];
+    this->size = cv::Point3i(size[0].asInt(), size[1].asInt(), size[2].asInt());
+    this->XY = this->size.x * this->size.y;
+    // state_min
+    Json::Value state_min = root["state_min"];
+    this->state_min = cv::Point3d(state_min[0].asDouble(), state_min[1].asDouble(), state_min[2].asDouble());
+    // state_max
+    Json::Value state_max = root["state_max"];
+    this->state_max = cv::Point3d(state_max[0].asDouble(), state_max[1].asDouble(), state_max[2].asDouble());
+
+    nodes.resize(this->size.x * this->size.y * this->size.z);
+    for (int z = 0; z < this->size.z; z++)
+    {
+        for (int y = 0; y < this->size.y; y++)
+        {
+            for (int x = 0; x < this->size.x; x++)
+            {
+                nodes[x + y * this->size.x + z * this->XY] = new Layer1GraphNode();
+                nodes[x + y * this->size.x + z * this->XY]->state = cv::Point3d(this->state_min.x + x * this->resolution.x,
+                                                                    this->state_min.y + y * this->resolution.y,
+                                                                    this->state_min.z + z * this->resolution.z);
+                nodes[x + y * this->size.x + z * this->XY]->index = cv::Point3i(x, y, z);
+            }
+        }
+    }
+
+    // static_collision
+    Json::Value static_collision = root["static_collision"];
+    for (auto & v : static_collision)
+    {
+        auto node = (*this)(v[0].asInt(), v[1].asInt(), v[2].asInt());
+        if (node)
+        {
+            node->collision_static = true;
+        }
+    }
+    // dynamic_map
+    Json::Value dynamic_map = root["dynamic_map"];
+    for (auto & v : dynamic_map)
+    {
+        this->dynamic_map[v[0].asString()] = v[1].asInt();
+    }
+    // dynamic_collision_zero
+    Json::Value dynamic_collision_zero = root["dynamic_collision_zero"];
+    std::vector<cv::Point3f> zero;
+    for (auto & v : dynamic_collision_zero)
+    {
+        zero.emplace_back(cv::Point3f(v[0].asDouble(), v[1].asDouble(), v[2].asDouble()));
+    }
+    for (int i = 0; i < dynamic_map.size(); i++)
+    {
+        this->dynamic_collisions_zero.emplace_back(zero);
+    }
+    this->dynamic_collisions_last = this->dynamic_collisions_zero;
 }
 
 void Layer1GridGraph::ignoreDynamicCollision(std::string name)

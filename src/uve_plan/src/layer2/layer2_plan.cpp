@@ -17,8 +17,17 @@ void layer2::Layer2Plan::setInitGraph(layer1::Layer1GridGraph &freeGraph, layer1
         freeGraphs[i].copyFrom(freeGraph);
         carryGraphs[i].copyFrom(carryGraph);
     }
-    std::cout << "freeGraph size: " << freeGraph.size.x << " " << freeGraph.size.y << " " << freeGraph.size.z << std::endl;
-    std::cout << "carryGraph size: " << carryGraph.size.x << " " << carryGraph.size.y << " " << carryGraph.size.z << std::endl;
+    // std::cout << "freeGraph size: " << freeGraph.size.x << " " << freeGraph.size.y << " " << freeGraph.size.z << std::endl;
+    // std::cout << "carryGraph size: " << carryGraph.size.x << " " << carryGraph.size.y << " " << carryGraph.size.z << std::endl;
+}
+
+void layer2::Layer2Plan::setInitGraph(std::shared_ptr<layer1::Layer1GridGraph> freeGraph, std::shared_ptr<layer1::Layer1GridGraph> carryGraph)
+{
+    for (int i = 0; i < max_thread; i++)
+    {
+        freeGraphs[i].copyFrom(freeGraph);
+        carryGraphs[i].copyFrom(carryGraph);
+    }
 }
 
 void layer2::Layer2Plan::setWorldDSCP(uvs_message::srv::UvQueryWorld::Response &w)
@@ -40,6 +49,7 @@ void Layer2Plan::setCarryExecuteSpace(double max_v, double max_w, int step_v, in
 
 void layer2::Layer2Plan::updateGraph(uve_message::msg::UveDynamicStatusList &nstate)
 {
+    dynamic_state = nstate;
     for (int i = 0; i < max_thread; i++)
     {
         freeGraphs[i].updateDynamic(nstate);
@@ -49,10 +59,11 @@ void layer2::Layer2Plan::updateGraph(uve_message::msg::UveDynamicStatusList &nst
 
 Layer2PlanResult Layer2Plan::search(cv::Point3d Astate, std::string Cname, cv::Point3d Cgoal, cv::Point3d Agoal)
 {
+    auto time_start = std::chrono::high_resolution_clock::now();
     auto& freegraph0 = freeGraphs[0];
     cur_Cname = Cname;
     cur_Cgoal = Cgoal;
-    std::cout << "searching " << Cname << std::endl;
+    // std::cout << "searching " << Cname << std::endl;
     // 退化情况，不携带物体
     if (Cname == "")
     {
@@ -70,7 +81,7 @@ Layer2PlanResult Layer2Plan::search(cv::Point3d Astate, std::string Cname, cv::P
         }
         return result;
     }
-    std::cout << "searched " << Cname << std::endl;
+    // std::cout << "searched " << Cname << std::endl;
     // 正常情况，携带物体
     // 找不到目标物体
     auto targetCargoIt = freegraph0.dynamic_map.find(Cname);
@@ -83,7 +94,7 @@ Layer2PlanResult Layer2Plan::search(cv::Point3d Astate, std::string Cname, cv::P
     auto& targetCargo = world.cargos[targetCargoIt->second];
     int plan_num = targetCargo.anchors.size();
     cv::Point3d Cstart = freegraph0.dynamic_pose[targetCargoIt->second];
-    std::cout << "Cstart: " << Cstart.x << " " << Cstart.y << " " << Cstart.z << std::endl;
+    // std::cout << "Cstart: " << Cstart.x << " " << Cstart.y << " " << Cstart.z << std::endl;
     std::vector<cv::Point3d> CAstart_list(plan_num);
     std::vector<cv::Point3d> CAgoal_list(plan_num);
     std::vector<double> cargo_anchors_theta;
@@ -102,7 +113,7 @@ Layer2PlanResult Layer2Plan::search(cv::Point3d Astate, std::string Cname, cv::P
                             + agent_anchor_center * std::cos(CAstart_list[i].z);
         CAstart_list[i].y = Cstart.y + targetCargo.anchors[i].x * std::sin(Cstart.z) + targetCargo.anchors[i].y * std::cos(Cstart.z)
                             + agent_anchor_center * std::sin(CAstart_list[i].z);
-        CAstart_list[i].z = M_PI - CAstart_list[i].z;
+        CAstart_list[i].z = CAstart_list[i].z - M_PI;
         if (CAstart_list[i].z > M_PI)
         {
             CAstart_list[i].z -= 2 * M_PI;
@@ -120,7 +131,7 @@ Layer2PlanResult Layer2Plan::search(cv::Point3d Astate, std::string Cname, cv::P
                             + agent_anchor_center * std::cos(CAgoal_list[i].z);
         CAgoal_list[i].y = Cgoal.y + targetCargo.anchors[i].x * std::sin(Cgoal.z) + targetCargo.anchors[i].y * std::cos(Cgoal.z)
                             + agent_anchor_center * std::sin(CAgoal_list[i].z);
-        CAgoal_list[i].z = M_PI - CAgoal_list[i].z;
+        CAgoal_list[i].z = CAgoal_list[i].z - M_PI;
         if (CAgoal_list[i].z > M_PI)
         {
             CAgoal_list[i].z -= 2 * M_PI;
@@ -133,36 +144,38 @@ Layer2PlanResult Layer2Plan::search(cv::Point3d Astate, std::string Cname, cv::P
     // 开辟线程进行规划
     // 等待线程结束
     // 收集结果，选择最优解
+    std::vector<std::future<Layer2PlanResult>> futures;
     int cur_process = 0;
     while (cur_process < plan_num)
     {
-        // for (int i = 0; i < max_thread; i++)
-        // {
-        //     futures.push_back(std::async(std::launch::async, &Layer2Plan::searchThread, this, i, Astate, CAstart_list[cur_process], CAgoal_list[cur_process], Agoal));
-        //     cur_process++;
-        //     if (cur_process >= plan_num)
-        //     {
-        //         break;
-        //     }
-        // }
-        // for (int i = 0; i < max_thread; i++)
-        // {
-        //     if (futures[i].valid())
-        //     {
-        //         auto ret = futures[i].get();
-        //         if (ret.success)
-        //         {
-        //             results.insert(std::make_pair(ret.cost, ret));
-        //         }
-        //     }
-        // }
-        auto ret = searchThread(0, Astate, CAstart_list[cur_process], CAgoal_list[cur_process], Agoal);
-        if (ret.success)
+        for (int i = 0; i < max_thread; i++)
         {
-            results.insert(std::make_pair(ret.cost, ret));
+            futures.push_back(std::async(std::launch::async, &Layer2Plan::searchThread, this, i, Astate, CAstart_list[cur_process], CAgoal_list[cur_process], Agoal));
+            cur_process++;
+            if (cur_process >= plan_num)
+            {
+                break;
+            }
         }
-        cur_process++;
+        for (int i = 0; i < max_thread; i++)
+        {
+            if (futures[i].valid())
+            {
+                auto ret = futures[i].get();
+                if (ret.success)
+                {
+                    results.insert(std::make_pair(ret.cost, ret));
+                }
+            }
+        }
+        // auto ret = searchThread(0, Astate, CAstart_list[cur_process], CAgoal_list[cur_process], Agoal);
+        // if (ret.success)
+        // {
+        //     results.insert(std::make_pair(ret.cost, ret));
+        // }
+        // cur_process++;
     }
+    futures.clear();
 
     if (results.empty())
     {
@@ -170,6 +183,8 @@ Layer2PlanResult Layer2Plan::search(cv::Point3d Astate, std::string Cname, cv::P
     }
     auto result = results.begin()->second;
     results.clear();
+    auto time_end = std::chrono::high_resolution_clock::now();
+    result.planTime = std::chrono::duration<double, std::nano>(time_end - time_start).count();
     return result;
 }
 
@@ -178,27 +193,38 @@ Layer2PlanResult Layer2Plan::searchThread(int id, cv::Point3d Astart, cv::Point3
     auto time_start = std::chrono::high_resolution_clock::now();
     Layer2PlanResult result;
     plans[id].setExecuteSpace(freeConfig[0], freeConfig[1], freeConfig[2], freeConfig[3], freeConfig[4]);
-    std::cout << "[" << id << "]" << "freeConfig: " << freeConfig[0] << " " << freeConfig[1] << " " << freeConfig[2] << " " << freeConfig[3] << " " << freeConfig[4] << std::endl;
+    // std::cout << "[" << id << "]" << "freeConfig: " << freeConfig[0] << " " << freeConfig[1] << " " << freeConfig[2] << " " << freeConfig[3] << " " << freeConfig[4] << std::endl;
+    freeGraphs[id].updateDynamic(dynamic_state);
     plans[id].bindGraph(&freeGraphs[id]);
-    std::cout << "[" << id << "]" << "Astart: " << Astart.x << " " << Astart.y << " " << Astart.z << std::endl;
-    std::cout << "[" << id << "]" << "CAstart: " << CAstart.x << " " << CAstart.y << " " << CAstart.z << std::endl;
+    // std::cout << "[" << id << "]" << "Astart: " << Astart.x << " " << Astart.y << " " << Astart.z << std::endl;
+    // std::cout << "[" << id << "]" << "CAstart: " << CAstart.x << " " << CAstart.y << " " << CAstart.z << std::endl;
     auto ret = plans[id].search(Astart, CAstart);
-    std::cout << "[" << id << "]" << "ret: " << ret.success << " " << ret.iterations << std::endl;
+    // std::cout << "[" << id << "]" << "ret: " << ret.success << " " << ret.iterations << std::endl;
     if (!ret.success)
     {
         return Layer2PlanResult();
     }
-    std::cout << "[" << id << "]" << 159 << std::endl;
+    // std::cout << "[" << id << "]" << 159 << std::endl;
     result.cost = ret.cost;
     result.path_m = ret.path;
     result.vw_m = ret.vw;
 
-    carryGraphs[id].ignoreDynamicCollision(cur_Cname);
+    // carryGraphs[id].ignoreDynamicCollision(cur_Cname);
+    auto tempD = dynamic_state;
+    auto tempIt = std::find_if(tempD.list.begin(), tempD.list.end(), [&](const uve_message::msg::UveDynamicStatus& d){
+        return d.name == cur_Cname;
+    });
+    if (tempIt != tempD.list.end())
+    {
+        tempD.list.erase(tempIt);
+    }
+    carryGraphs[id].updateDynamic(tempD);
+    
     plans[id].setExecuteSpace(carryConfig[0], carryConfig[1], carryConfig[2], carryConfig[3], carryConfig[4]);
     plans[id].bindGraph(&carryGraphs[id]);
-    std::cout << "[" << id << "]" << "CAgoal: " << CAgoal.x << " " << CAgoal.y << " " << CAgoal.z << std::endl;
+    // std::cout << "[" << id << "]" << "CAgoal: " << CAgoal.x << " " << CAgoal.y << " " << CAgoal.z << std::endl;
     ret = plans[id].search(CAstart, CAgoal);
-    std::cout << "[" << id << "]" << "ret: " << ret.success << " " << ret.iterations << std::endl;
+    // std::cout << "[" << id << "]" << "ret: " << ret.success << " " << ret.iterations << std::endl;
     if (!ret.success)
     {
         return Layer2PlanResult();

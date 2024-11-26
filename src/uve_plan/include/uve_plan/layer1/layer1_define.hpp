@@ -138,8 +138,10 @@ public:
 
     void updateDynamic(uve_message::msg::UveDynamicStatusList& nstate);
     void copyFrom(Layer1GridGraph& other);
+    void copyFrom(std::shared_ptr<Layer1GridGraph> other);
 
     void save(std::string path);
+    void load(std::string path);
 
     void ignoreDynamicCollision(std::string name);
     // void setGround

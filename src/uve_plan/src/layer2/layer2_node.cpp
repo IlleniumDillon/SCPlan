@@ -33,12 +33,12 @@ Layer2Node::Layer2Node()
     int carry_step_w = get_parameter("carryspace.step_w").as_int();
     double carry_dt = get_parameter("carryspace.dt").as_double();
 
-    freeGraph = std::make_shared<Layer1GridGraph>(free_graph_path);
-    RCLCPP_INFO(get_logger(), "free_graph size: %d %d %d", freeGraph->size.x, freeGraph->size.y, freeGraph->size.z);
-    carryGraph = std::make_shared<Layer1GridGraph>(carry_graph_path);
-    RCLCPP_INFO(get_logger(), "carry_graph size: %d %d %d", carryGraph->size.x, carryGraph->size.y, carryGraph->size.z);
+    freeGraph.load(free_graph_path);
+    // RCLCPP_INFO(get_logger(), "free_graph size: %d %d %d", freeGraph->size.x, freeGraph->size.y, freeGraph->size.z);
+    carryGraph.load(carry_graph_path);
+    // RCLCPP_INFO(get_logger(), "carry_graph size: %d %d %d", carryGraph->size.x, carryGraph->size.y, carryGraph->size.z);
     plan.setMaxThread(max_thread);
-    plan.setInitGraph(*freeGraph, *carryGraph);
+    plan.setInitGraph(freeGraph, carryGraph);
     plan.setFreeExecuteSpace(free_max_v, free_max_w, free_step_v, free_step_w, free_dt);
     plan.setCarryExecuteSpace(carry_max_v, carry_max_w, carry_step_v, carry_step_w, carry_dt);
 
@@ -99,7 +99,7 @@ void Layer2Node::goalCallback(const uve_message::msg::NonInteractiveCarryGoal::S
         goal.name, 
         cv::Point3d(goal.goal_cargo.x, goal.goal_cargo.y, goal.goal_cargo.theta), 
         cv::Point3d(goal.goal_agent.x, goal.goal_agent.y, goal.goal_agent.theta));
-    RCLCPP_INFO(get_logger(), "search result: %d", result.success);
+    RCLCPP_INFO(get_logger(), "search result: %d, time: %f", result.success, result.planTime/10.0e9);
     if (result.success)
     {   
         geometry_msgs::msg::PoseArray poses;
