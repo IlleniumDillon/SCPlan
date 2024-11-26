@@ -234,6 +234,14 @@ Layer2PlanResult Layer2Plan::searchThread(int id, cv::Point3d Astart, cv::Point3
     result.vw_c = ret.vw;
 
     /// 更新地图
+    if (Agoal.x == std::numeric_limits<double>::max())
+    {
+        result.success = true;
+        auto time_end = std::chrono::high_resolution_clock::now();
+        result.planTime = std::chrono::duration<double, std::nano>(time_end - time_start).count();
+        return result;
+    }
+
     uve_message::msg::UveDynamicStatusList updates;
     uve_message::msg::UveDynamicStatus update;
     update.name = cur_Cname;
