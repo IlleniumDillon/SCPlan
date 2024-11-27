@@ -17,133 +17,134 @@ namespace layer3
 
 using Layer3GraphNodeFlag = layer1::Layer1GraphNodeFlag;
 
-class Layer3ConnectNode
-{
-public:
-    Layer3ConnectNode()
-    {
-        domainLabel = -1;
-        g = 0;
-        h = 0;
-        f = 0;
-        parent = -1;
-        flag = Layer3GraphNodeFlag::NOT_VISITED;
-    }
-    ~Layer3ConnectNode() = default;
-    Layer3ConnectNode(Layer3ConnectNode& other) = default;
-    Layer3ConnectNode(const Layer3ConnectNode& other) = default;
-    Layer3ConnectNode& operator=(const Layer3ConnectNode& node)
-    {
-        domainLabel = node.domainLabel;
-        g = node.g;
-        h = node.h;
-        f = node.f;
-        parent = node.parent;
-        flag = node.flag;
-        return *this;
-    }
-    bool operator==(const Layer3ConnectNode& node) const
-    {
-        return domainLabel == node.domainLabel;
-    }
-public:
-    int domainLabel;
-    std::vector<int> edgeLabels;
-    double g, h, f;
-    int parent;
-    Layer3GraphNodeFlag flag;
-    std::multimap<double, int>::iterator it;
-
-    cv::Point3d agentPose;
-    uve_message::msg::UveDynamicStatusList dynamic;
-    layer2::Layer2PlanResult path;
-};
 class Layer3ConnectEdge
 {
 public:
-    Layer3ConnectEdge()
-    {
-        edgeLabel = -1;
-        node1Label = -1;
-        node2Label = -1;
-        cost = 0;
-    }
-    Layer3ConnectEdge(int edgeLabel, int node1Label, int node2Label, double cost, std::string name)
-        : edgeLabel(edgeLabel), node1Label(node1Label), node2Label(node2Label), cost(cost), name(name) {}
+    Layer3ConnectEdge(){}
+    Layer3ConnectEdge(int id, int domain1, int domain2, std::string name, double direction)
+        : edge_id(id), domain1(domain1), domain2(domain2), name(name), direction(direction){}
     ~Layer3ConnectEdge() = default;
-    Layer3ConnectEdge(Layer3ConnectEdge& other) = default;
-    Layer3ConnectEdge(const Layer3ConnectEdge& other) = default;
-    Layer3ConnectEdge& operator=(const Layer3ConnectEdge& edge)
-    {
-        edgeLabel = edge.edgeLabel;
-        node1Label = edge.node1Label;
-        node2Label = edge.node2Label;
-        cost = edge.cost;
-        name = edge.name;
-        return *this;
-    }
 
-    int getOtherNode(int nodeLabel) const
+    int otherDomain(int domain)
     {
-        if (node1Label == nodeLabel)
+        if (domain == domain1)
         {
-            return node2Label;
+            return domain2;
         }
-        else if (node2Label == nodeLabel)
+        if (domain == domain2)
         {
-            return node1Label;
+            return domain1;
         }
         return -1;
     }
 public:
-    int edgeLabel;
-    int node1Label;
-    int node2Label;
-    double cost;
+    int edge_id;
+    int domain1;
+    int domain2;
     std::string name;
+    double direction;
 };
-class Layer3ConnectGraph
-{
-public:
-    Layer3ConnectGraph() = default;
-    ~Layer3ConnectGraph() = default;
-    Layer3ConnectGraph(Layer3ConnectGraph& other) = default;
-    Layer3ConnectGraph(const Layer3ConnectGraph& other) = default;
-    Layer3ConnectGraph& operator=(const Layer3ConnectGraph& graph)
-    {
-        nodes = graph.nodes;
-        edges = graph.edges;
-        return *this;
-    }
-public:
-    std::vector<Layer3ConnectNode> nodes;
-    std::vector<Layer3ConnectEdge> edges;
-};
+
 class Layer3PixMap
 {
 public:
-    Layer3PixMap() = default;
+    Layer3PixMap(){}
     ~Layer3PixMap() = default;
+
     Layer3PixMap(Layer3PixMap& other) = delete;
     Layer3PixMap(const Layer3PixMap& other) = delete;
     Layer3PixMap& operator=(const Layer3PixMap& other) = delete;
 
-    void fromLayer1Graph(layer1::Layer1GridGraph& graph);
+    void fromGridGraph(layer1::Layer1GridGraph& graph, 
+        uve_message::msg::UveDynamicStatusList& dynamic_state,
+        uvs_message::srv::UvQueryWorld::Response& world);
 
-    int operator()(int x, int y);
-    int operator()(double x, double y);
-
-    void copyFrom(Layer3PixMap& other);
-
+    int* operator()(int x, int y);
+    int* operator()(double x, double y);
 public:
     cv::Point2d origin;
     cv::Point2d resolution;
     cv::Point2i size;
     cv::Point2d state_min;
     cv::Point2d state_max;
-    // -1: 未知， 0: 占用， >0: 连通域号
-    std::vector<int> data;
-    int maxDomainLabel = 0;
+
+    // -2: 占用, -1: 未知, >=0: domain
+    std::vector<int> domainMap;
+    int numOfDomain;
+
+    std::vector<Layer3ConnectEdge> edges;
+    std::map<int/*区域序号*/,std::set<int>/*边的序号*/> domain_edges;
+};
+
+class Layer3SearchNode
+{
+public:
+    Layer3SearchNode()
+    {
+        domainLabel = -1;
+        index = std::make_pair(-1, -1);
+        via_edge.clear();
+        agent_state = cv::Point3d(0, 0, 0);
+        dynamic_state.list.clear();
+        parent = nullptr;
+        g = h = f = 0;
+        flag = Layer3GraphNodeFlag::NOT_VISITED;
+    }
+    ~Layer3SearchNode() = default;
+
+    Layer3SearchNode(Layer3SearchNode& other) = default;
+    Layer3SearchNode(const Layer3SearchNode& other) = default;
+
+    Layer3SearchNode& operator=(const Layer3SearchNode& node)
+    {
+        domainLabel = node.domainLabel;
+        index = node.index;
+        via_edge = node.via_edge;
+        agent_state = node.agent_state;
+        dynamic_state = node.dynamic_state;
+        path_from_parent = node.path_from_parent;
+        parent = node.parent;
+        g = node.g;
+        h = node.h;
+        f = node.f;
+        flag = node.flag;
+        it = node.it;
+        return *this;
+    }
+public:
+    int domainLabel;
+    std::pair<int/*通过边序号 */, int/*检查点序号 */> index;
+    std::vector<int> via_edge;
+    cv::Point3d agent_state;
+    uve_message::msg::UveDynamicStatusList dynamic_state;
+    layer2::Layer2PlanResult path_from_parent;
+    Layer3SearchNode* parent;
+    double g, h, f;
+    Layer3GraphNodeFlag flag;
+    std::multimap<double, Layer3SearchNode*>::iterator it;
+};
+
+class Layer3SearchGraph
+{
+public:
+    Layer3SearchGraph(){}
+    ~Layer3SearchGraph() = default;
+
+    Layer3SearchGraph(Layer3SearchGraph& other) = delete;
+    Layer3SearchGraph(const Layer3SearchGraph& other) = delete;
+    Layer3SearchGraph& operator=(const Layer3SearchGraph& other) = delete;
+
+    void fromPixMap(Layer3PixMap& map, std::vector<cv::Point3d>& checkPoints_ref);
+
+    Layer3SearchNode* operator()(int edge_id, int checkPoint_id);
+    Layer3SearchNode* operator()(std::pair<int, int> index);
+public:
+    std::vector<Layer3SearchNode> nodes;
+    int edge_num;
+    int checkPoint_num;
+
+    // x:长度 ，y:最终旋转角度， z:保留
+    std::vector<cv::Point3d> checkPoints;
 };
 
 }   // namespace layer3

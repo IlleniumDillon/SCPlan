@@ -17,6 +17,7 @@ public:
     bool success = false;
     double planTime = std::numeric_limits<double>::max();
     double cost = std::numeric_limits<double>::max();
+    std::string Cname = "";
     std::vector<cv::Point3d> path_m;
     std::vector<cv::Point3d> path_c;
     std::vector<cv::Point3d> path_a;

@@ -22,17 +22,23 @@ class Layer3Node : public rclcpp::Node
 public:
     Layer3Node();
     ~Layer3Node() = default;
+
 public:
     void dynamicCallback(const uve_message::msg::UveDynamicStatusList::SharedPtr msg);
     void startCallback(const geometry_msgs::msg::Pose2D::SharedPtr msg);
     void goalCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg);
 public:
+    Layer3PixMap map;
+    Layer3SearchGraph graph;
+    Layer3Plan plan3;
+    Layer2Plan plan2;
     Layer1GridGraph freeGraph;
     Layer1GridGraph carryGraph;
-    Layer3Plan plan;
+    std::vector<cv::Point3d> checkPoints;
+
     nav_msgs::msg::Path path;
     geometry_msgs::msg::Pose2D start;
-    geometry_msgs::msg::PoseStamped goal;
+    geometry_msgs::msg::Pose2D goal;
     uvs_message::srv::UvQueryWorld::Response world;
     uve_message::msg::UveDynamicStatusList dynamic;
 
@@ -42,8 +48,6 @@ public:
     rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr goal_sub;
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub;
     rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr map_pub;
-    rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pose_pub;
-
 };
 
 #endif // LAYER3_NODE_HPP

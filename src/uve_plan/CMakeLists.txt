@@ -4,7 +4,7 @@ project(uve_plan)
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../ros2support.cmake)
 
 set(CMAKE_CXX_STANDARD 17)
-# set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Debug)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -81,6 +81,22 @@ target_link_directories(
 )
 target_link_libraries(
   uve_layer2_plan
+  jsoncpp
+)
+
+file (GLOB UVE_LAYER_3_FILES ${CMAKE_SOURCE_DIR}/src/layer3/*cpp)
+BUILD_EXEC(
+  TARGET uve_layer3_plan
+  SOURCES ${UVE_LAYER_3_FILES} ${UVE_LAYER_2_FILES} ${UVE_LAYER_1_FILES} ${CMAKE_SOURCE_DIR}/src/layer3_node_main.cpp
+  DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message rclcpp_action action_msgs OpenCV
+)
+target_link_directories(
+  uve_layer3_plan
+  PUBLIC
+  /home/jxl3028/Desktop/uvExpSupport/install/uvs_tools/lib
+)
+target_link_libraries(
+  uve_layer3_plan
   jsoncpp
 )
 
