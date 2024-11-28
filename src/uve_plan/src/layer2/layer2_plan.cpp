@@ -148,33 +148,33 @@ Layer2PlanResult Layer2Plan::search(cv::Point3d Astate, std::string Cname, cv::P
     int cur_process = 0;
     while (cur_process < plan_num)
     {
-        // for (int i = 0; i < max_thread; i++)
-        // {
-        //     futures.push_back(std::async(std::launch::async, &Layer2Plan::searchThread, this, i, Astate, CAstart_list[cur_process], CAgoal_list[cur_process], Agoal));
-        //     cur_process++;
-        //     if (cur_process >= plan_num)
-        //     {
-        //         break;
-        //     }
-        // }
-        // for (int i = 0; i < max_thread; i++)
-        // {
-        //     if (futures[i].valid())
-        //     {
-        //         futures[i].wait();
-        //         auto ret = futures[i].get();
-        //         if (ret.success)
-        //         {
-        //             results.insert(std::make_pair(ret.cost, ret));
-        //         }
-        //     }
-        // }
-        auto ret = searchThread(0, Astate, CAstart_list[cur_process], CAgoal_list[cur_process], Agoal);
-        if (ret.success)
+        for (int i = 0; i < max_thread; i++)
         {
-            results.insert(std::make_pair(ret.cost, ret));
+            futures.push_back(std::async(std::launch::async, &Layer2Plan::searchThread, this, i, Astate, CAstart_list[cur_process], CAgoal_list[cur_process], Agoal));
+            cur_process++;
+            if (cur_process >= plan_num)
+            {
+                break;
+            }
         }
-        cur_process++;
+        for (int i = 0; i < max_thread; i++)
+        {
+            if (futures[i].valid())
+            {
+                futures[i].wait();
+                auto ret = futures[i].get();
+                if (ret.success)
+                {
+                    results.insert(std::make_pair(ret.cost, ret));
+                }
+            }
+        }
+        // auto ret = searchThread(0, Astate, CAstart_list[cur_process], CAgoal_list[cur_process], Agoal);
+        // if (ret.success)
+        // {
+        //     results.insert(std::make_pair(ret.cost, ret));
+        // }
+        // cur_process++;
     }
     futures.clear();
 
@@ -198,8 +198,8 @@ Layer2PlanResult Layer2Plan::searchThread(int id, cv::Point3d Astart, cv::Point3
     // std::cout << "[" << id << "]" << "freeConfig: " << freeConfig[0] << " " << freeConfig[1] << " " << freeConfig[2] << " " << freeConfig[3] << " " << freeConfig[4] << std::endl;
     freeGraphs[id].updateDynamic(dynamic_state);
     plans[id].bindGraph(&freeGraphs[id]);
-    std::cout << "[" << id << "]" << "Astart: " << Astart.x << " " << Astart.y << " " << Astart.z << std::endl;
-    std::cout << "[" << id << "]" << "CAstart: " << CAstart.x << " " << CAstart.y << " " << CAstart.z << std::endl;
+    // std::cout << "[" << id << "]" << "Astart: " << Astart.x << " " << Astart.y << " " << Astart.z << std::endl;
+    // std::cout << "[" << id << "]" << "CAstart: " << CAstart.x << " " << CAstart.y << " " << CAstart.z << std::endl;
     auto ret = plans[id].search(Astart, CAstart);
     // std::cout << "[" << id << "]" << "ret: " << ret.success << " " << ret.iterations << std::endl;
     if (!ret.success)
@@ -224,7 +224,7 @@ Layer2PlanResult Layer2Plan::searchThread(int id, cv::Point3d Astart, cv::Point3
     
     plans[id].setExecuteSpace(carryConfig[0], carryConfig[1], carryConfig[2], carryConfig[3], carryConfig[4]);
     plans[id].bindGraph(&carryGraphs[id]);
-    std::cout << "[" << id << "]" << "CAgoal: " << CAgoal.x << " " << CAgoal.y << " " << CAgoal.z << std::endl;
+    // std::cout << "[" << id << "]" << "CAgoal: " << CAgoal.x << " " << CAgoal.y << " " << CAgoal.z << std::endl;
     ret = plans[id].search(CAstart, CAgoal);
     // std::cout << "[" << id << "]" << "ret: " << ret.success << " " << ret.iterations << std::endl;
     if (!ret.success)

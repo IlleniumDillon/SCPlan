@@ -21,7 +21,7 @@ class Layer3Node : public rclcpp::Node
 {
 public:
     Layer3Node();
-    ~Layer3Node() = default;
+    ~Layer3Node();
 
 public:
     void dynamicCallback(const uve_message::msg::UveDynamicStatusList::SharedPtr msg);
@@ -31,7 +31,7 @@ public:
     Layer3PixMap map;
     Layer3SearchGraph graph;
     Layer3Plan plan3;
-    Layer2Plan plan2;
+    Layer2Plan* plan2_list = nullptr;
     Layer1GridGraph freeGraph;
     Layer1GridGraph carryGraph;
     std::vector<cv::Point3d> checkPoints;

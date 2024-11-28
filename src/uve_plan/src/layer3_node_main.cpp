@@ -25,7 +25,10 @@ int main(int argc, char *argv[])
     {
         auto response = result.get();
         node->world = *response;
-        node->plan2.setWorldDSCP(node->world);
+        for (int i = 0; i < node->plan3.max_thread; i++)
+        {
+            node->plan2_list[i].setWorldDSCP(node->world);
+        }
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "INIT DONE");
     }
     else

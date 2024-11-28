@@ -81,7 +81,7 @@ def generate_launch_description():
             uvs_optitrack,
             uvs_mapserver,
             uve_mapclient,
-            # uve_plan,
+            uve_plan,
             rviz2
         ]
     )

@@ -138,7 +138,7 @@ Layer1PlanResult Layer1Plan::search(Layer1GraphNode *start, Layer1GraphNode *goa
 
     if (start->collision_dynamic || start->collision_static || goal->collision_dynamic || goal->collision_static)
     {
-        std::cout << "start or goal is in collision" << std::endl;
+        // std::cout << "start or goal is in collision" << std::endl;
         return result;
     }
 
@@ -221,7 +221,7 @@ Layer1PlanResult Layer1Plan::search(cv::Point3d start, cv::Point3d goal)
     auto goal_node = (*graph)(goal.x, goal.y, goal.z);
     if (start_node == nullptr || goal_node == nullptr)
     {
-        std::cout << "start or goal is out of the world" << std::endl;
+        // std::cout << "start or goal is out of the world" << std::endl;
         return Layer1PlanResult();
     }
     return search(start_node, goal_node);

@@ -20,7 +20,7 @@
   ros__parameters:
     free_graph_path: /home/jxl3028/Desktop/SCPlan_Exp/src/uve_plan/config/free.json
     carry_graph_path: /home/jxl3028/Desktop/SCPlan_Exp/src/uve_plan/config/carry.json
-    max_thread: 1
+    max_thread: 4
     freespace:
       max_v: 0.3
       max_w: 0.78539816339744830961566084582
