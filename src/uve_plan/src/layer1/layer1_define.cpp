@@ -1,5 +1,7 @@
 #include "layer1_define.hpp"
 
+#include <iostream>
+#include <fstream>
 #include "json/json.h"
 
 using namespace layer1;

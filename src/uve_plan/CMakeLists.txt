@@ -46,7 +46,7 @@ BUILD_EXEC(
 target_link_directories(
   uve_layer1_plan
   PUBLIC
-  /home/jxl3028/Desktop/uvExpSupport/install/uvs_tools/lib
+  /home/jetson/Desktop/project/uvExpSupport/install/uvs_tools/lib
 )
 target_link_libraries(
   uve_layer1_plan
@@ -61,7 +61,7 @@ BUILD_EXEC(
 target_link_directories(
   uve_plan_genmap
   PUBLIC
-  /home/jxl3028/Desktop/uvExpSupport/install/uvs_tools/lib
+  /home/jetson/Desktop/project/uvExpSupport/install/uvs_tools/lib
 )
 target_link_libraries(
   uve_plan_genmap
@@ -77,7 +77,7 @@ BUILD_EXEC(
 target_link_directories(
   uve_layer2_plan
   PUBLIC
-  /home/jxl3028/Desktop/uvExpSupport/install/uvs_tools/lib
+  /home/jetson/Desktop/project/uvExpSupport/install/uvs_tools/lib
 )
 target_link_libraries(
   uve_layer2_plan
@@ -93,7 +93,7 @@ BUILD_EXEC(
 target_link_directories(
   uve_layer3_plan
   PUBLIC
-  /home/jxl3028/Desktop/uvExpSupport/install/uvs_tools/lib
+  /home/jetson/Desktop/project/uvExpSupport/install/uvs_tools/lib
 )
 target_link_libraries(
   uve_layer3_plan
@@ -108,7 +108,7 @@ BUILD_EXEC(
 target_link_directories(
   uve_plan
   PUBLIC
-  /home/jxl3028/Desktop/uvExpSupport/install/uvs_tools/lib
+  /home/jetson/Desktop/project/uvExpSupport/install/uvs_tools/lib
 )
 target_link_libraries(
   uve_plan
