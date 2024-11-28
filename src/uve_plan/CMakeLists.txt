@@ -100,6 +100,21 @@ target_link_libraries(
   jsoncpp
 )
 
+BUILD_EXEC(
+  TARGET uve_plan
+  SOURCES ${UVE_LAYER_3_FILES} ${UVE_LAYER_2_FILES} ${UVE_LAYER_1_FILES} ${CMAKE_SOURCE_DIR}/src/uve_plan_main.cpp
+  DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message rclcpp_action action_msgs OpenCV
+)
+target_link_directories(
+  uve_plan
+  PUBLIC
+  /home/jxl3028/Desktop/uvExpSupport/install/uvs_tools/lib
+)
+target_link_libraries(
+  uve_plan
+  jsoncpp
+)
+
 # target_compile_definitions(
 #   uve_layer1_plan
 #   PRIVATE

@@ -5,3 +5,24 @@
   ros__parameters:
     LocalIPv4Addr: "192.168.50.114"
     ServerIPv4Addr: "192.168.50.194"
+/uve_plan:
+  ros__parameters:
+    free_graph_path: /home/jxl3028/Desktop/SCPlan_Exp/src/uve_plan/config/free.json
+    carry_graph_path: /home/jxl3028/Desktop/SCPlan_Exp/src/uve_plan/config/carry.json
+    max_thread: 4
+    freespace:
+      max_v: 0.3
+      max_w: 0.78539816339744830961566084582
+      step_v: 2
+      step_w: 2
+      dt: 0.5
+    carryspace:
+      max_v: 0.3
+      max_w: 0.78539816339744830961566084582
+      step_v: 2
+      step_w: 2
+      dt: 0.5
+    checkpoints: [
+      1.0, 0.0, 0.0,
+      -1.0, 0.0, 0.0
+    ]

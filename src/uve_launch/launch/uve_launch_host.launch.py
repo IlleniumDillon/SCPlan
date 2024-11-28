@@ -56,8 +56,8 @@ def generate_launch_description():
     
     uve_plan = Node(
         package='uve_plan',
-        executable='uve_layer1_plan',
-        name='uve_layer1_plan',
+        executable='uve_plan',
+        name='uve_plan',
         output='screen',
         parameters=[config]
     )
