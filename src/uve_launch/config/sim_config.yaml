@@ -3,7 +3,7 @@
     world_name: "jxl3028"
 /uve_simoptitrack:
   ros__parameters:
-    sim_opt_name: ["uv05", "c1", "c2", "c3", "c4"]
+    sim_opt_name: ["uv05", "c0", "c1", "c2", "c3"]
     sim_opt_pose: [
       0.324, -3.24, 0.0,
       -2.0, -0.864, 0.0,

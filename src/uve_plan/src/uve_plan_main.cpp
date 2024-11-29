@@ -187,49 +187,103 @@ public:
         }
     }
 
+    void expandAndGetRst(uve_message::msg::UvePlanResult& expand, std::vector<cv::Point3d>& rst_p, std::vector<cv::Point2d>& rst_vw)
+    {
+        rst_vw.push_back(cv::Point2d(0,0));
+        for (int i = 0; i < rst_p.size(); i++)
+        {
+            double v = rst_vw[i+1].x;
+            double w = rst_vw[i+1].y;
+
+            for (int j = 0; j < 5; j++)
+            {
+                double dt = 0.1 * j;
+                cv::Point3d neighbor;
+                neighbor.z = w * dt;
+                neighbor.y = neighbor.z / 2;
+                if (w == 0)
+                {
+                    neighbor.x = v * dt;
+                }
+                else
+                {
+                    double R = v / w;
+                    double L = std::sqrt(2*R*R*(1 - std::cos(w * dt)));
+                    neighbor.x = L;
+                }
+                cv::Point3d dstate(
+                    neighbor.x * std::cos(rst_p[i].z + neighbor.y),
+                    neighbor.x * std::sin(rst_p[i].z + neighbor.y),
+                    neighbor.z
+                );
+                dstate = dstate + rst_p[i];
+                if (dstate.z >= M_PI)
+                {
+                    dstate.z -= 2 * M_PI;
+                }
+                if (dstate.z < -M_PI)
+                {
+                    dstate.z += 2 * M_PI;
+                }
+                geometry_msgs::msg::Pose2D pose;
+                pose.x = dstate.x;
+                pose.y = dstate.y;
+                pose.theta = dstate.z;
+                expand.trace.push_back(pose);
+            }
+        }
+    }
+
+
     void controlTask()
     {
+        RCLCPP_INFO(get_logger(), "start control");
         std::vector<uve_message::msg::UvePlanResult> controlRefs;
         for (int i = 0; i < result.path.size(); i++)
         {
             uve_message::msg::UvePlanResult r_m;
             r_m.interaction = -1;
-            for (int j = 0; j < result.path[i].path_m.size(); j++)
-            {
-                geometry_msgs::msg::Pose2D pose;
-                pose.x = result.path[i].path_m[j].x;
-                pose.y = result.path[i].path_m[j].y;
-                pose.theta = result.path[i].path_m[j].z;
-                r_m.trace.push_back(pose);
-            }
+            // for (int j = 0; j < result.path[i].path_m.size(); j++)
+            // {
+            //     geometry_msgs::msg::Pose2D pose;
+            //     pose.x = result.path[i].path_m[j].x;
+            //     pose.y = result.path[i].path_m[j].y;
+            //     pose.theta = result.path[i].path_m[j].z;
+            //     r_m.trace.push_back(pose);
+            // }
+            expandAndGetRst(r_m, result.path[i].path_m, result.path[i].vw_m);
+            controlRefs.push_back(r_m);
             if (result.path[i].Cname == "") continue;
             uve_message::msg::UvePlanResult r_c;
             r_c.interaction = result.path[i].Cname[result.path[i].Cname.size() - 1] - '0';
-            for (int j = 0; j < result.path[i].path_c.size(); j++)
-            {
-                geometry_msgs::msg::Pose2D pose;
-                pose.x = result.path[i].path_c[j].x;
-                pose.y = result.path[i].path_c[j].y;
-                pose.theta = result.path[i].path_c[j].z;
-                r_c.trace.push_back(pose);
-            }
+            // for (int j = 0; j < result.path[i].path_c.size(); j++)
+            // {
+            //     geometry_msgs::msg::Pose2D pose;
+            //     pose.x = result.path[i].path_c[j].x;
+            //     pose.y = result.path[i].path_c[j].y;
+            //     pose.theta = result.path[i].path_c[j].z;
+            //     r_c.trace.push_back(pose);
+            // }
+            expandAndGetRst(r_c, result.path[i].path_c, result.path[i].vw_c);
             uve_message::msg::UvePlanResult r_a;
             r_a.interaction = -1;
-            for (int j = 0; j < result.path[i].path_a.size(); j++)
-            {
-                geometry_msgs::msg::Pose2D pose;
-                pose.x = result.path[i].path_a[j].x;
-                pose.y = result.path[i].path_a[j].y;
-                pose.theta = result.path[i].path_a[j].z;
-                r_a.trace.push_back(pose);
-            }
-            controlRefs.push_back(r_m);
+            // for (int j = 0; j < result.path[i].path_a.size(); j++)
+            // {
+            //     geometry_msgs::msg::Pose2D pose;
+            //     pose.x = result.path[i].path_a[j].x;
+            //     pose.y = result.path[i].path_a[j].y;
+            //     pose.theta = result.path[i].path_a[j].z;
+            //     r_a.trace.push_back(pose);
+            // }
+            expandAndGetRst(r_a, result.path[i].path_a, result.path[i].vw_a);
             controlRefs.push_back(r_c);
             controlRefs.push_back(r_a);
         }
         
         for (int i = 0; i < controlRefs.size(); i++)
         {
+            getFlag.store(false);
+            finishFlag.store(false);
             if (!_taskAlive())
             {
                 return;

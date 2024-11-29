@@ -36,7 +36,6 @@ public:
     Layer1GridGraph carryGraph;
     std::vector<cv::Point3d> checkPoints;
 
-    nav_msgs::msg::Path path;
     geometry_msgs::msg::Pose2D start;
     geometry_msgs::msg::Pose2D goal;
     uvs_message::srv::UvQueryWorld::Response world;
@@ -46,7 +45,9 @@ public:
     rclcpp::Subscription<uve_message::msg::UveDynamicStatusList>::SharedPtr dynamic_sub;
     rclcpp::Subscription<geometry_msgs::msg::Pose2D>::SharedPtr start_sub;
     rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr goal_sub;
-    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub;
+    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_m_pub;
+    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_c_pub;
+    rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_a_pub;
     rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr map_pub;
 };
 

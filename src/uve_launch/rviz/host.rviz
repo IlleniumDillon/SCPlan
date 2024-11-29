@@ -7,6 +7,9 @@ Panels:
         - /Global Options1
         - /Status1
         - /Grid1
+        - /Path1
+        - /Path2
+        - /Path3
       Splitter Ratio: 0.5
     Tree Height: 617
   - Class: rviz_common/Selection
@@ -15,6 +18,7 @@ Panels:
     Expanded:
       - /2D Goal Pose1
       - /Publish Point1
+      - /Interactive move1
     Name: Tool Properties
     Splitter Ratio: 0.5886790156364441
   - Class: rviz_common/Views
@@ -90,7 +94,7 @@ Visualization Manager:
       Enabled: true
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
-      Length: 0.30000001192092896
+      Length: 0.10000000149011612
       Line Style: Lines
       Line Width: 0.029999999329447746
       Name: Path
@@ -99,8 +103,8 @@ Visualization Manager:
         Y: 0
         Z: 0
       Pose Color: 255; 85; 255
-      Pose Style: None
-      Radius: 0.029999999329447746
+      Pose Style: Axes
+      Radius: 0.009999999776482582
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
       Topic:
@@ -108,7 +112,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /path
+        Value: /path_m
       Value: true
     - Alpha: 1
       Arrow Length: 0.30000001192092896
@@ -129,6 +133,60 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /trace
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz_default_plugins/Path
+      Color: 239; 41; 41
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.10000000149011612
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: Axes
+      Radius: 0.009999999776482582
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /path_c
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz_default_plugins/Path
+      Color: 32; 74; 135
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.10000000149011612
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: Axes
+      Radius: 0.009999999776482582
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /path_a
       Value: true
   Enabled: true
   Global Options:
@@ -166,6 +224,13 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /clicked_point
+    - Class: scene_interaction_moving/InteractiveMove
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: inter_move_goal
   Transformation:
     Current:
       Class: rviz_default_plugins/TF
@@ -182,11 +247,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 60.25772476196289
+      Scale: 104.38236236572266
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz_default_plugins)
-      X: 0
-      Y: 0
+      X: -1.200984239578247
+      Y: -0.2077033817768097
     Saved: ~
 Window Geometry:
   Displays:
@@ -202,5 +267,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1200
-  X: 702
-  Y: 102
+  X: 1431
+  Y: 539
