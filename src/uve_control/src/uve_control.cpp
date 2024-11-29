@@ -244,6 +244,7 @@ void UveControl::controlTask()
         {
             dtheta -= 2 * M_PI;
         }
+        RCLCPP_INFO(get_logger(), "error: %f,%f,%f", dx,dy,dtheta);
         if (std::sqrt(dx*dx+dy*dy) < 0.02 && dtheta < 0.17)
         {
             break;
@@ -297,7 +298,7 @@ void UveControl::controlTask()
     // 关闭电磁铁
     armOutput.arm_arm = arm_arm_off;
     armOutput.arm_base = arm_base_off;
-    emagOutput.enable = true;
+    emagOutput.enable = false;
     vwOutput.v = 0;
     vwOutput.w = 0;
     pub_arm_->publish(armOutput);

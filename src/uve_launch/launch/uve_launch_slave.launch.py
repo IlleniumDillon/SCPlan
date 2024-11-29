@@ -55,6 +55,6 @@ def generate_launch_description():
     
     return LaunchDescription([
         uve_control,
-        uvs_embmaster,
-        uve_perception
+        uvs_embmaster
+        # uve_perception
     ])
