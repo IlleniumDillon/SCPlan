@@ -276,8 +276,11 @@ void UveControl::controlTask()
         emagOutput.enable = true;
         pub_arm_->publish(armOutput);
         pub_emag_->publish(emagOutput);
+        vwOutput.v = control(0);
+        vwOutput.w = control(1);
+        pub_kinetics_->publish(vwOutput);
+        std::this_thread::sleep_for(1s);
     }
-    std::this_thread::sleep_for(1s);
     // 跟踪路径
     mpc_->setTrackReference(x_ref, y_ref, theta_ref, v_ref, w_ref);
     while (_taskAlive())
