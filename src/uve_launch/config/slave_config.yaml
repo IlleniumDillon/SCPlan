@@ -1,21 +1,30 @@
 /uve_control:
   ros__parameters:
-    uve_control.mpc.horizon:  10
-    uve_control.mpc.dt:  0.1
-    uve_control.mpc.Q:  [
-      10.0, 0.0, 0.0,
-      0.0, 10.0, 0.0,
-      0.0, 0.0, 0.1
-    ]
-    uve_control.mpc.R:  [
-      1.0, 0.0,
-      0.0, 0.1
-    ]
-    uve_control.mpc.Qf:  [
-      10.0, 0.0, 0.0,
-      0.0, 10.0, 0.0,
-      0.0, 0.0, 0.1
-    ]
+    uve_control:
+      mpc:
+        horizon:  10
+        dt: 0.1
+        Q:  [
+          10.0, 0.0, 0.0,
+          0.0, 10.0, 0.0,
+          0.0, 0.0, 0.1
+        ]
+        R:  [
+          1.0, 0.0,
+          0.0, 0.1
+        ]
+        Qf: [
+          10.0, 0.0, 0.0,
+          0.0, 10.0, 0.0,
+          0.0, 0.0, 0.1
+        ]
+        wheelWidth: 0.238
+        maxWheelSpeed:  0.3
+      arm:
+        arm_off:  3855
+        arm_on:  3080
+        base_off:  308
+        base_on:  840
 /uve_perception:
   ros__parameters:
     camera:
