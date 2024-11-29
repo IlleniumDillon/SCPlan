@@ -10,6 +10,10 @@ UveControl::UveControl()
     declare_parameter<std::vector<double>>("uve_control.mpc.Q", {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0});
     declare_parameter<std::vector<double>>("uve_control.mpc.R", {1.0, 0.0, 0.0, 1.0});
     declare_parameter<std::vector<double>>("uve_control.mpc.Qf", {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0});
+    declare_parameter("uve_control.arm.arm_off");
+    declare_parameter("uve_control.arm.arm_on");
+    declare_parameter("uve_control.arm.base_off");
+    declare_parameter("uve_control.arm.base_on");
     Eigen::MatrixXd Q(3, 3);
     Eigen::MatrixXd R(2, 2);
     Eigen::MatrixXd Qf(3, 3);
@@ -29,13 +33,10 @@ UveControl::UveControl()
         Q, R, Qf
     );
     mpc_rate = 1 / mpc_->dT;
-
-    action_server_ = rclcpp_action::create_server<uve_message::action::UvePathTrack>(
-        this,
-        "uve_path_track",
-        std::bind(&UveControl::handle_goal, this, std::placeholders::_1, std::placeholders::_2),
-        std::bind(&UveControl::handle_cancel, this, std::placeholders::_1),
-        std::bind(&UveControl::handle_accepted, this, std::placeholders::_1));
+    arm_arm_off = get_parameter("uve_control.arm.arm_off").as_int();
+    arm_arm_on = get_parameter("uve_control.arm.arm_on").as_int();
+    arm_base_off = get_parameter("uve_control.arm.base_off").as_int();
+    arm_base_on = get_parameter("uve_control.arm.base_on").as_int();
 
     RCLCPP_INFO(get_logger(), "UveControl has been started.");
 
@@ -44,7 +45,11 @@ UveControl::UveControl()
     pub_kinetics_ = create_publisher<uvs_message::msg::UvEmbKinetics>("uvs_emb_kinetics", 1);
     sub_status_ = create_subscription<geometry_msgs::msg::Pose2D>("uve_agent_status", 1, std::bind(&UveControl::status_callback, this, std::placeholders::_1));
     sub_emb_ = create_subscription<uvs_message::msg::UvEmbStatus>("uvs_emb_status", 1, std::bind(&UveControl::emb_callback, this, std::placeholders::_1));
-    timer_ = create_wall_timer(std::chrono::milliseconds(100), std::bind(&UveControl::timer_callback, this));
+
+    control_ref_sub = create_subscription<uve_message::msg::UvePlanResult>("uve_control_ref", 1, std::bind(&UveControl::control_ref_callback, this, std::placeholders::_1));
+    control_get_pub = create_publisher<std_msgs::msg::Empty>("uve_control_get", 1);
+    control_finish_pub = create_publisher<std_msgs::msg::Empty>("uve_control_finish", 1);
+    control_abort_sub = create_subscription<std_msgs::msg::Empty>("uve_control_abort", 1, std::bind(&UveControl::control_abort_callback, this, std::placeholders::_1));
 }
 
 UveControl::~UveControl()
@@ -55,33 +60,7 @@ UveControl::~UveControl()
     }
 }
 
-rclcpp_action::GoalResponse UveControl::handle_goal(const rclcpp_action::GoalUUID &uuid, std::shared_ptr<const uve_message::action::UvePathTrack::Goal> goal)
-{
-    (void) uuid;
-    (void) goal;
-    RCLCPP_INFO(get_logger(), "Received goal request");
-    // if (future_.valid())
-    // {
-    //     return rclcpp_action::GoalResponse::REJECT;
-    // }
-    return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
-}
-
-rclcpp_action::CancelResponse UveControl::handle_cancel(const std::shared_ptr<rclcpp_action::ServerGoalHandle<uve_message::action::UvePathTrack>> goal_handle)
-{
-    (void) goal_handle;
-    return rclcpp_action::CancelResponse::ACCEPT;
-}
-
-void UveControl::handle_accepted(const std::shared_ptr<rclcpp_action::ServerGoalHandle<uve_message::action::UvePathTrack>> goal_handle)
-{
-    using namespace std::placeholders;
-    std::thread{std::bind(&UveControl::execute, this, _1), goal_handle}.detach();
-    RCLCPP_INFO(get_logger(), "handle_accepted");
-    // future_ = std::async(std::launch::async, std::bind(&UveControl::execute, this, _1), goal_handle);
-}
-
-void UveControl::execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<uve_message::action::UvePathTrack>> goal_handle)
+/*void UveControl::execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<uve_message::action::UvePathTrack>> goal_handle)
 {
     rclcpp::Rate loop_rate(mpc_rate);
     const auto goal = goal_handle->get_goal();
@@ -162,7 +141,7 @@ void UveControl::execute(const std::shared_ptr<rclcpp_action::ServerGoalHandle<u
     result->duration.sec = d.seconds();
     result->duration.nanosec = d.nanoseconds();
     goal_handle->succeed(result);
-}
+}*/
 
 void UveControl::status_callback(const geometry_msgs::msg::Pose2D::SharedPtr msg)
 {
@@ -190,6 +169,138 @@ void UveControl::emb_callback(const uvs_message::msg::UvEmbStatus::SharedPtr msg
     emb_ = *msg;
 }
 
-void UveControl::timer_callback()
+void UveControl::control_ref_callback(const uve_message::msg::UvePlanResult::SharedPtr msg)
 {
+    path = *msg;    
+    abortFlag.store(false);
+    if (future_.valid())
+    {
+        future_.wait();
+    }
+    future_ = std::async(std::launch::async, &UveControl::controlTask, this);
+}
+
+void UveControl::control_abort_callback(const std_msgs::msg::Empty::SharedPtr msg)
+{
+    abortFlag.store(true);
+}
+
+void UveControl::controlTask()
+{
+    uvs_message::msg::UvEmbArm armOutput;
+    uvs_message::msg::UvEmbEmag emagOutput;
+    uvs_message::msg::UvEmbKinetics vwOutput;
+    // rclcpp::Rate loop_rate(mpc_rate);
+    Eigen::VectorXd x_ref, y_ref, theta_ref, v_ref, w_ref;
+    Eigen::VectorXd state(5);
+    Eigen::VectorXd control(2);
+    x_ref.resize(path.trace.size());
+    y_ref.resize(path.trace.size());
+    theta_ref.resize(path.trace.size());
+    v_ref.resize(path.trace.size());
+    w_ref.resize(path.trace.size());
+    for (int waypoint = 0; waypoint < path.trace.size(); waypoint++)
+    {
+        x_ref(waypoint) = path.trace[waypoint].x;
+        y_ref(waypoint) = path.trace[waypoint].y;
+        theta_ref(waypoint) = path.trace[waypoint].theta;
+        if (theta_ref(waypoint) <= -M_PI)
+        {
+            theta_ref(waypoint) += 2 * M_PI;
+        }
+        if (theta_ref(waypoint) > M_PI)
+        {
+            theta_ref(waypoint) -= 2 * M_PI;
+        }
+    }
+    // 打开电磁铁
+    if (path.interaction > -1)
+    {
+        armOutput.arm_arm = arm_arm_on;
+        armOutput.arm_base = arm_base_on;
+        emagOutput.enable = true;
+        pub_arm_->publish(armOutput);
+        pub_emag_->publish(emagOutput);
+    }
+    // 跟踪第一个点
+    mpc_->setTrackReference(x_ref.block(0,0,1,1), y_ref.block(0,0,1,1), theta_ref.block(0,0,1,1), v_ref.block(0,0,1,1), w_ref.block(0,0,1,1));
+    while (_taskAlive())
+    {
+        auto time_start = std::chrono::high_resolution_clock::now();
+        state <<    status_.x, 
+                        status_.y, 
+                        status_.theta ,
+                        (emb_.left_wheel_speed+emb_.right_wheel_speed) / 2,
+                        (emb_.right_wheel_speed-emb_.left_wheel_speed) / wheelWidth * 2;
+        // 如果当前状态与路径点第一个点的误差很小则退出
+        double dx = x_ref(0) - state(0);
+        double dy = y_ref(0) - state(1);
+        double dtheta = theta_ref(0) - state(2);
+        if (dtheta < -M_PI)
+        {
+            dtheta += 2 * M_PI;
+        }
+        if (dtheta > M_PI)
+        {
+            dtheta -= 2 * M_PI;
+        }
+        if (std::sqrt(dx*dx+dy*dy) < 0.02 && dtheta < 0.17)
+        {
+            break;
+        }
+        // mpc
+        mpc_->update(state, control);
+        vwOutput.v = control(0);
+        vwOutput.w = control(1);
+        pub_kinetics_->publish(vwOutput);
+        while (1)
+        {
+            auto time_end = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(time_end - time_start);
+            if (duration.count() > mpc_->dT * 1e9)
+            {
+                break;
+            }
+        }
+    }
+    control_get_pub->publish(std_msgs::msg::Empty());
+    // 跟踪路径
+    mpc_->setTrackReference(x_ref, y_ref, theta_ref, v_ref, w_ref);
+    while (_taskAlive())
+    {
+        auto time_start = std::chrono::high_resolution_clock::now();
+        state <<    status_.x, 
+                        status_.y, 
+                        status_.theta ,
+                        (emb_.left_wheel_speed+emb_.right_wheel_speed) / 2,
+                        (emb_.right_wheel_speed-emb_.left_wheel_speed) / wheelWidth * 2;
+        // mpc
+        bool done = mpc_->update(state, control);
+        vwOutput.v = control(0);
+        vwOutput.w = control(1);
+        pub_kinetics_->publish(vwOutput);
+        while (1)
+        {
+            auto time_end = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(time_end - time_start);
+            if (duration.count() > mpc_->dT * 1e9)
+            {
+                break;
+            }
+        }
+        if (done)
+        {
+            break;
+        }
+    }
+    control_finish_pub->publish(std_msgs::msg::Empty());
+    // 关闭电磁铁
+    armOutput.arm_arm = arm_arm_off;
+    armOutput.arm_base = arm_base_off;
+    emagOutput.enable = true;
+    vwOutput.v = 0;
+    vwOutput.w = 0;
+    pub_arm_->publish(armOutput);
+    pub_emag_->publish(emagOutput);
+    pub_kinetics_->publish(vwOutput);
 }
