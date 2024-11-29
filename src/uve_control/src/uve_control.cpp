@@ -1,5 +1,8 @@
 #include "uve_control.hpp"
 #include "eigen3/Eigen/Eigen"
+
+using namespace std::chrono_literals;
+
 UveControl::UveControl()
     : Node("uve_control")
 {
@@ -214,14 +217,15 @@ void UveControl::controlTask()
         }
     }
     // 打开电磁铁
-    if (path.interaction > -1)
-    {
-        armOutput.arm_arm = arm_arm_on;
-        armOutput.arm_base = arm_base_on;
-        emagOutput.enable = true;
-        pub_arm_->publish(armOutput);
-        pub_emag_->publish(emagOutput);
-    }
+    // if (path.interaction > -1)
+    // {
+    //     armOutput.arm_arm = arm_arm_on;
+    //     armOutput.arm_base = arm_base_on;
+    //     emagOutput.enable = true;
+    //     pub_arm_->publish(armOutput);
+    //     pub_emag_->publish(emagOutput);
+    // }
+    // std::this_thread::sleep_for(1s);
     // 跟踪第一个点
     mpc_->setTrackReference(x_ref.block(0,0,1,1), y_ref.block(0,0,1,1), theta_ref.block(0,0,1,1), v_ref.block(0,0,1,1), w_ref.block(0,0,1,1));
     while (_taskAlive())
@@ -244,7 +248,8 @@ void UveControl::controlTask()
         {
             dtheta -= 2 * M_PI;
         }
-        if (std::sqrt(dx*dx+dy*dy) < 0.02 && dtheta < 0.17)
+        RCLCPP_INFO(get_logger(), "error: %f,%f,%f", dx,dy,dtheta);
+        if (std::sqrt(dx*dx+dy*dy) < 0.05 && dtheta < 0.17)
         {
             break;
         }
@@ -264,6 +269,15 @@ void UveControl::controlTask()
         }
     }
     control_get_pub->publish(std_msgs::msg::Empty());
+    if (path.interaction > -1)
+    {
+        armOutput.arm_arm = arm_arm_on;
+        armOutput.arm_base = arm_base_on;
+        emagOutput.enable = true;
+        pub_arm_->publish(armOutput);
+        pub_emag_->publish(emagOutput);
+    }
+    std::this_thread::sleep_for(1s);
     // 跟踪路径
     mpc_->setTrackReference(x_ref, y_ref, theta_ref, v_ref, w_ref);
     while (_taskAlive())
@@ -297,7 +311,7 @@ void UveControl::controlTask()
     // 关闭电磁铁
     armOutput.arm_arm = arm_arm_off;
     armOutput.arm_base = arm_base_off;
-    emagOutput.enable = true;
+    emagOutput.enable = false;
     vwOutput.v = 0;
     vwOutput.w = 0;
     pub_arm_->publish(armOutput);
