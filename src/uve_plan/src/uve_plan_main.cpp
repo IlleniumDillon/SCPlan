@@ -8,7 +8,12 @@
 #include "nav_msgs/msg/path.hpp"
 #include "nav_msgs/msg/occupancy_grid.hpp"
 #include "uve_message/msg/non_interactive_carry_goal.hpp"
+#include "uve_message/msg/uve_plan_result.hpp"
+#include "std_msgs/msg/empty.hpp"
 #include "tf2/utils.h"
+#include <thread>
+#include <future>
+#include <atomic>
 
 using namespace layer3;
 using namespace layer2;
@@ -79,9 +84,23 @@ public:
         goal_sub = create_subscription<geometry_msgs::msg::PoseStamped>("inter_move_goal", 1, std::bind(&UvePlanNode::goalCallback, this, std::placeholders::_1));
 
         path_pub = create_publisher<nav_msgs::msg::Path>("path", 1);
+
+        control_get_sub = create_subscription<std_msgs::msg::Empty>("uve_control_get", 1, [this](const std_msgs::msg::Empty::SharedPtr msg) {
+            getFlag.store(true);
+        });
+        control_finish_sub = create_subscription<std_msgs::msg::Empty>("uve_control_finish", 1, [this](const std_msgs::msg::Empty::SharedPtr msg) {
+            finishFlag.store(true);
+        });
+        control_ref_pub = create_publisher<uve_message::msg::UvePlanResult>("uve_control_ref", 1);
+        control_abort_pub = create_publisher<std_msgs::msg::Empty>("uve_control_abort", 1);
     }
     ~UvePlanNode()
     {
+        abortFlag.store(true);
+        if (taskFuture != nullptr)
+        {
+            taskFuture->wait();
+        }
         if (plan2_list != nullptr)
         {
             delete[] plan2_list;
@@ -99,6 +118,16 @@ public:
     }
     void goalCallback(const geometry_msgs::msg::PoseStamped::SharedPtr msg)
     {
+        getFlag.store(false);
+        finishFlag.store(false);
+        abortFlag.store(true);
+        if (taskFuture != nullptr)
+        {
+            taskFuture->wait();
+        }
+        taskFuture = nullptr;
+        abortFlag.store(false);
+
         freeGraph.updateDynamic(dynamic);
         carryGraph.updateDynamic(dynamic);
         for (int i = 0; i < plan3.max_thread; i++)
@@ -114,12 +143,13 @@ public:
         plan3.bindPlanner(plan2_list);
 
         cv::Point3d goal(msg->pose.position.x, msg->pose.position.y, tf2::getYaw(msg->pose.orientation));
-        auto result = plan3.search(cv::Point3d(start.x, start.y, start.theta), goal);
+        result = plan3.search(cv::Point3d(start.x, start.y, start.theta), goal);
 
         RCLCPP_INFO(get_logger(), "search result: %d, time: %f", result.success, result.planTime / 10.0e9);
 
         if (result.success)
         {
+            taskFuture = std::make_shared<std::future<void>>(std::async(std::launch::async, &UvePlanNode::controlTask, this));
             path.poses.clear();
             path.header.stamp = now();
             path.header.frame_id = "map";
@@ -156,6 +186,90 @@ public:
             path_pub->publish(path);
         }
     }
+
+    void controlTask()
+    {
+        std::vector<uve_message::msg::UvePlanResult> controlRefs;
+        for (int i = 0; i < result.path.size(); i++)
+        {
+            uve_message::msg::UvePlanResult r_m;
+            r_m.interaction = -1;
+            for (int j = 0; j < result.path[i].path_m.size(); j++)
+            {
+                geometry_msgs::msg::Pose2D pose;
+                pose.x = result.path[i].path_m[j].x;
+                pose.y = result.path[i].path_m[j].y;
+                pose.theta = result.path[i].path_m[j].z;
+                r_m.trace.push_back(pose);
+            }
+            if (result.path[i].Cname == "") continue;
+            uve_message::msg::UvePlanResult r_c;
+            r_c.interaction = result.path[i].Cname[result.path[i].Cname.size() - 1] - '0';
+            for (int j = 0; j < result.path[i].path_c.size(); j++)
+            {
+                geometry_msgs::msg::Pose2D pose;
+                pose.x = result.path[i].path_c[j].x;
+                pose.y = result.path[i].path_c[j].y;
+                pose.theta = result.path[i].path_c[j].z;
+                r_c.trace.push_back(pose);
+            }
+            uve_message::msg::UvePlanResult r_a;
+            r_a.interaction = -1;
+            for (int j = 0; j < result.path[i].path_a.size(); j++)
+            {
+                geometry_msgs::msg::Pose2D pose;
+                pose.x = result.path[i].path_a[j].x;
+                pose.y = result.path[i].path_a[j].y;
+                pose.theta = result.path[i].path_a[j].z;
+                r_a.trace.push_back(pose);
+            }
+            controlRefs.push_back(r_m);
+            controlRefs.push_back(r_c);
+            controlRefs.push_back(r_a);
+        }
+        
+        for (int i = 0; i < controlRefs.size(); i++)
+        {
+            if (!_taskAlive())
+            {
+                return;
+            }
+            RCLCPP_INFO(get_logger(), "pub control ref: %d/%d", (i+1), controlRefs.size());
+            control_ref_pub->publish(controlRefs[i]);
+            RCLCPP_INFO(get_logger(), "waiting get response");
+            while (!getFlag.load())
+            {
+                if (!_taskAlive())
+                {
+                    control_abort_pub->publish(std_msgs::msg::Empty());
+                    return;
+                }
+                std::this_thread::sleep_for(10ms);
+            }
+            RCLCPP_INFO(get_logger(), "waiting finish response");
+            while (!finishFlag.load())
+            {
+                if (!_taskAlive())
+                {
+                    control_abort_pub->publish(std_msgs::msg::Empty());
+                    return;
+                }
+                std::this_thread::sleep_for(10ms);
+            }
+            RCLCPP_INFO(get_logger(), "abort control");
+            control_abort_pub->publish(std_msgs::msg::Empty());
+        }
+        RCLCPP_INFO(get_logger(), "finish all path");
+    }
+
+    bool _taskAlive()
+    {
+        if (rclcpp::ok() && !abortFlag.load())
+        {
+            return true;
+        }
+        return false;
+    }
 public:
     Layer3PixMap map;
     Layer3SearchGraph graph;
@@ -177,6 +291,18 @@ public:
     rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr goal_sub;
     rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub;
     rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr map_pub;
+
+    rclcpp::Publisher<uve_message::msg::UvePlanResult>::SharedPtr control_ref_pub;
+    rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr control_get_sub;
+    rclcpp::Subscription<std_msgs::msg::Empty>::SharedPtr control_finish_sub;
+    rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr control_abort_pub;
+
+    std::atomic<bool> getFlag;
+    std::atomic<bool> finishFlag;
+    std::atomic<bool> abortFlag;
+    layer3::Layer3PlanResult result;
+
+    std::shared_ptr<std::future<void>> taskFuture = nullptr;
 };
 
 int main(int argc, char **argv)

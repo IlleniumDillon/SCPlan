@@ -78,6 +78,7 @@ Layer2PlanResult Layer2Plan::search(cv::Point3d Astate, std::string Cname, cv::P
             result.cost = ret.cost;
             result.path_m = ret.path;
             result.vw_m = ret.vw;
+            result.Cname = Cname;
         }
         return result;
     }
