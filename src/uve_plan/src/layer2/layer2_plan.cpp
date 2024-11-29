@@ -142,6 +142,21 @@ Layer2PlanResult Layer2Plan::search(cv::Point3d Astate, std::string Cname, cv::P
             CAgoal_list[i].z += 2 * M_PI;
         }
     }
+
+    // 打印信息
+    // std::cout << "----------------" << std::endl;
+    // std::cout << "Astart: " << Astate.x << " " << Astate.y << " " << Astate.z << std::endl;
+    // std::cout << "Agoal: " << Agoal.x << " " << Agoal.y << " " << Agoal.z << std::endl;
+    // std::cout << "Cname: " << Cname << std::endl;
+    // std::cout << "Cgoal: " << Cgoal.x << " " << Cgoal.y << " " << Cgoal.z << std::endl;
+    // for (int i = 0; i < plan_num; i++)
+    // {
+    //     std::cout << i << std::endl;
+    //     std::cout << "CAstart: " << CAstart_list[i].x << " " << CAstart_list[i].y << " " << CAstart_list[i].z << std::endl;
+    //     std::cout << "CAgoal: " << CAgoal_list[i].x << " " << CAgoal_list[i].y << " " << CAgoal_list[i].z << std::endl;
+    // }
+    // std::cout << "----------------" << std::endl;
+
     // 开辟线程进行规划
     // 等待线程结束
     // 收集结果，选择最优解

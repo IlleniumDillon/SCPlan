@@ -47,6 +47,7 @@ void Layer3PixMap::fromGridGraph(layer1::Layer1GridGraph &graph,
 
     // set the domain map
     int cur_domain = 0;
+    std::vector<int> area_of_domain;
     while (pix_left > 0)
     {
         // find the first unknown pixel
@@ -70,7 +71,9 @@ void Layer3PixMap::fromGridGraph(layer1::Layer1GridGraph &graph,
 
         // BFS
         std::queue<std::pair<int, int>> q;
+        area_of_domain.push_back(0);
         *(*this)(x, y) = cur_domain;
+        area_of_domain.at(cur_domain)++;
         pix_left--;
         q.push(std::make_pair(x, y));
         while (!q.empty())
@@ -93,6 +96,7 @@ void Layer3PixMap::fromGridGraph(layer1::Layer1GridGraph &graph,
                     if (*(*this)(p.first + i, p.second + j) == -1)
                     {
                         *(*this)(p.first + i, p.second + j) = cur_domain;
+                        area_of_domain.at(cur_domain)++;
                         pix_left--;
                         q.push(std::make_pair(p.first + i, p.second + j));
                     }
@@ -102,6 +106,39 @@ void Layer3PixMap::fromGridGraph(layer1::Layer1GridGraph &graph,
         cur_domain++;
     }
     numOfDomain = cur_domain;
+
+    // for (int i = 0; i < area_of_domain.size(); i++)
+    // {
+    //     std::cout << "domain " << i << " area: " << area_of_domain[i] << std::endl;
+    // }
+
+    // show the domain map with different colors
+    // cv::Mat img(size.y, size.x, CV_8UC3);
+    // std::vector<cv::Scalar> colors;
+    // for (int i = 0; i < numOfDomain; i++)
+    // {
+    //     colors.push_back(cv::Scalar(rand() % 256, rand() % 256, rand() % 256));
+    // }
+    // for (int i = 0; i < size.x; i++)
+    // {
+    //     for (int j = 0; j < size.y; j++)
+    //     {
+    //         if (*(*this)(i, j) == -2)
+    //         {
+    //             img.at<cv::Vec3b>(j, i) = cv::Vec3b(0, 0, 0);
+    //         }
+    //         else if (*(*this)(i, j) == -1)
+    //         {
+    //             img.at<cv::Vec3b>(j, i) = cv::Vec3b(255, 255, 255);
+    //         }
+    //         else
+    //         {
+    //             img.at<cv::Vec3b>(j, i) = cv::Vec3b(colors[*(*this)(i, j)][0], colors[*(*this)(i, j)][1], colors[*(*this)(i, j)][2]);
+    //         }
+    //     }
+    // }
+    // cv::imshow("domainMap", img);
+    // cv::waitKey(0);
 
     // generate the edges
     edges.clear();
@@ -158,6 +195,12 @@ void Layer3PixMap::fromGridGraph(layer1::Layer1GridGraph &graph,
             }
         }
     }
+
+    // for (int i = 0; i < edges.size(); i++)
+    // {
+    //     std::cout << "edge " << i << " " << edges[i].name << " " << edges[i].domain1 << " " << edges[i].domain2 << " " << edges[i].direction << std::endl;
+    // }
+
 }
 
 int* Layer3PixMap::operator()(int x, int y)

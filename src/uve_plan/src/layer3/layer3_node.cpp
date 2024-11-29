@@ -61,7 +61,9 @@ Layer3Node::Layer3Node()    : Node("layer3_node")
     dynamic_sub = create_subscription<uve_message::msg::UveDynamicStatusList>("uve_dynamic_status", 10, std::bind(&Layer3Node::dynamicCallback, this, std::placeholders::_1));
     start_sub = create_subscription<geometry_msgs::msg::Pose2D>("uve_agent_status", 10, std::bind(&Layer3Node::startCallback, this, std::placeholders::_1));
     goal_sub = create_subscription<geometry_msgs::msg::PoseStamped>("inter_move_goal", 10, std::bind(&Layer3Node::goalCallback, this, std::placeholders::_1));
-    path_pub = create_publisher<nav_msgs::msg::Path>("path", 10);
+    path_m_pub = create_publisher<nav_msgs::msg::Path>("path_m", 10);
+    path_c_pub = create_publisher<nav_msgs::msg::Path>("path_c", 10);
+    path_a_pub = create_publisher<nav_msgs::msg::Path>("path_a", 10);
     map_pub = create_publisher<nav_msgs::msg::OccupancyGrid>("mmap", 10);
 }
 
@@ -106,9 +108,15 @@ void Layer3Node::goalCallback(const geometry_msgs::msg::PoseStamped::SharedPtr m
 
     if (result.success)
     {
-        path.poses.clear();
-        path.header.stamp = now();
-        path.header.frame_id = "map";
+        nav_msgs::msg::Path path_m;
+        nav_msgs::msg::Path path_c;
+        nav_msgs::msg::Path path_a;
+        path_m.header.stamp = now();
+        path_m.header.frame_id = "map";
+        path_c.header.stamp = now();
+        path_c.header.frame_id = "map";
+        path_a.header.stamp = now();
+        path_a.header.frame_id = "map";
         for (auto &trace : result.path)
         {
             for(auto &point : trace.path_m)
@@ -118,7 +126,7 @@ void Layer3Node::goalCallback(const geometry_msgs::msg::PoseStamped::SharedPtr m
                 pose.pose.position.y = point.y;
                 pose.pose.position.z = 0;
                 pose.pose.orientation = tf2::toMsg(tf2::Quaternion(tf2::Vector3(0, 0, 1), point.z));
-                path.poses.push_back(pose);
+                path_m.poses.push_back(pose);
             }
             for(auto &point : trace.path_c)
             {
@@ -127,7 +135,7 @@ void Layer3Node::goalCallback(const geometry_msgs::msg::PoseStamped::SharedPtr m
                 pose.pose.position.y = point.y;
                 pose.pose.position.z = 0;
                 pose.pose.orientation = tf2::toMsg(tf2::Quaternion(tf2::Vector3(0, 0, 1), point.z));
-                path.poses.push_back(pose);
+                path_c.poses.push_back(pose);
             }
             for(auto &point : trace.path_a)
             {
@@ -136,9 +144,11 @@ void Layer3Node::goalCallback(const geometry_msgs::msg::PoseStamped::SharedPtr m
                 pose.pose.position.y = point.y;
                 pose.pose.position.z = 0;
                 pose.pose.orientation = tf2::toMsg(tf2::Quaternion(tf2::Vector3(0, 0, 1), point.z));
-                path.poses.push_back(pose);
+                path_a.poses.push_back(pose);
             }
         }
-        path_pub->publish(path);
+        path_m_pub->publish(path_m);
+        path_c_pub->publish(path_c);
+        path_a_pub->publish(path_a);
     }
 }

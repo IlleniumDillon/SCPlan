@@ -100,6 +100,17 @@ void Layer3Plan::getNeighbors(Layer3SearchNode *node,
                 .edge_id = edge_id,
                 .checkPoint_id = i
             };
+
+            // std::cout << "----------------" << std::endl;
+            // std::cout << "Astart: " << Astart.x << " " << Astart.y << " " << Astart.z << std::endl;
+            // std::cout << "Cname: " << Cname << std::endl;
+            // std::cout << "Cgoal: " << Cgoal.x << " " << Cgoal.y << " " << Cgoal.z << std::endl;
+            // std::cout << "Agoal: " << Agoal.x << " " << Agoal.y << " " << Agoal.z << std::endl;
+            // std::cout << "cur domain: " << node->domainLabel << std::endl;
+            // std::cout << "edge_id: " << edge_id << std::endl;
+            // std::cout << "checkPoint_id: " << i << std::endl;
+            // std::cout << "----------------" << std::endl;
+
             ins.push_back(in);
             // planner->updateGraph(temp_dynamic_state);
             // // std::cout << "searching " << Cname << " " << i << std::endl;
@@ -170,7 +181,19 @@ Layer3Plan::threadout Layer3Plan::searchThread(int id, Layer3Plan::threadin &in)
         out.neighbor = (*graph)(in.edge_id, in.checkPoint_id);
         out.cost = ret.cost;
         out.domain = map->edges[in.edge_id].otherDomain(in.node->domainLabel);
-        out.agent_state = ret.path_m.back();
+        if (ret.path_a.size() > 0)
+        {
+            out.agent_state = ret.path_a.back();
+        }
+        else if (ret.path_c.size() > 0)
+        {
+            out.agent_state = ret.path_c.back();
+        }
+        else
+        {
+            out.agent_state = ret.path_a.back();
+        }
+        // out.agent_state = ret.path_m.back();
         out.dynamic_state = in.dynamic_state;
         out.path_from_parent = ret;
         out.via_edge = in.edge_id;
