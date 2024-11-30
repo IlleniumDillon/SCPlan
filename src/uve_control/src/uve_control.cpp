@@ -276,8 +276,8 @@ void UveControl::controlTask()
         emagOutput.enable = true;
         pub_arm_->publish(armOutput);
         pub_emag_->publish(emagOutput);
-        vwOutput.v = control(0);
-        vwOutput.w = control(1);
+        vwOutput.v = 0;
+        vwOutput.w = 0;
         pub_kinetics_->publish(vwOutput);
         std::this_thread::sleep_for(1s);
     }
