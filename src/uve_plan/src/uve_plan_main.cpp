@@ -265,6 +265,7 @@ public:
             //     r_c.trace.push_back(pose);
             // }
             expandAndGetRst(r_c, result.path[i].path_c, result.path[i].vw_c);
+            controlRefs.push_back(r_c);
             uve_message::msg::UvePlanResult r_a;
             r_a.interaction = -1;
             // for (int j = 0; j < result.path[i].path_a.size(); j++)
@@ -275,9 +276,11 @@ public:
             //     pose.theta = result.path[i].path_a[j].z;
             //     r_a.trace.push_back(pose);
             // }
-            expandAndGetRst(r_a, result.path[i].path_a, result.path[i].vw_a);
-            controlRefs.push_back(r_c);
-            controlRefs.push_back(r_a);
+            if (result.path[i].path_a.size() > 0)
+            {
+                expandAndGetRst(r_a, result.path[i].path_a, result.path[i].vw_a);
+                controlRefs.push_back(r_a);
+            }
         }
         
         for (int i = 0; i < controlRefs.size(); i++)
