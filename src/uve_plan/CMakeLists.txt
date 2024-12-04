@@ -13,6 +13,7 @@ endif()
 FIND_PACKAGES(
   ament_cmake
   rclcpp
+  ament_index_cpp
   geometry_msgs
   nav_msgs
   tf2
@@ -41,7 +42,7 @@ file (GLOB UVE_LAYER_1_FILES ${CMAKE_SOURCE_DIR}/src/layer1/*cpp)
 BUILD_EXEC(
   TARGET uve_layer1_plan
   SOURCES ${UVE_LAYER_1_FILES} ${CMAKE_SOURCE_DIR}/src/layer1_node_main.cpp
-  DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message rclcpp_action action_msgs OpenCV
+  DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message rclcpp_action action_msgs OpenCV ament_index_cpp
 )
 target_link_directories(
   uve_layer1_plan
@@ -57,7 +58,7 @@ target_link_libraries(
 BUILD_EXEC(
   TARGET uve_plan_genmap
   SOURCES ${UVE_LAYER_1_FILES} ${CMAKE_SOURCE_DIR}/src/generate_map_main.cpp
-  DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message rclcpp_action action_msgs OpenCV
+  DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message rclcpp_action action_msgs OpenCV ament_index_cpp
 )
 target_link_directories(
   uve_plan_genmap
@@ -74,7 +75,7 @@ file (GLOB UVE_LAYER_2_FILES ${CMAKE_SOURCE_DIR}/src/layer2/*cpp)
 BUILD_EXEC(
   TARGET uve_layer2_plan
   SOURCES ${UVE_LAYER_2_FILES} ${UVE_LAYER_1_FILES} ${CMAKE_SOURCE_DIR}/src/layer2_node_main.cpp
-  DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message rclcpp_action action_msgs OpenCV
+  DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message rclcpp_action action_msgs OpenCV ament_index_cpp
 )
 target_link_directories(
   uve_layer2_plan
@@ -91,7 +92,7 @@ file (GLOB UVE_LAYER_3_FILES ${CMAKE_SOURCE_DIR}/src/layer3/*cpp)
 BUILD_EXEC(
   TARGET uve_layer3_plan
   SOURCES ${UVE_LAYER_3_FILES} ${UVE_LAYER_2_FILES} ${UVE_LAYER_1_FILES} ${CMAKE_SOURCE_DIR}/src/layer3_node_main.cpp
-  DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message rclcpp_action action_msgs OpenCV
+  DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message rclcpp_action action_msgs OpenCV ament_index_cpp
 )
 target_link_directories(
   uve_layer3_plan
@@ -107,7 +108,7 @@ target_link_libraries(
 BUILD_EXEC(
   TARGET uve_plan
   SOURCES ${UVE_LAYER_3_FILES} ${UVE_LAYER_2_FILES} ${UVE_LAYER_1_FILES} ${CMAKE_SOURCE_DIR}/src/uve_plan_main.cpp
-  DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message rclcpp_action action_msgs OpenCV
+  DEPENDENCIES rclcpp geometry_msgs nav_msgs tf2 trajectory_msgs Eigen3 uvs_tools uvs_message uve_message rclcpp_action action_msgs OpenCV ament_index_cpp
 )
 target_link_directories(
   uve_plan

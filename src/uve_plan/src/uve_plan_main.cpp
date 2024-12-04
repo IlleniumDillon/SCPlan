@@ -1,4 +1,7 @@
 #include <rclcpp/rclcpp.hpp>    
+
+#include <ament_index_cpp/get_package_share_directory.hpp>
+
 #include "layer3/layer3_plan.hpp"
 #include "uvs_message/srv/uv_query_world.hpp"
 #include "uve_message/msg/uve_dynamic_status_list.hpp"
@@ -40,8 +43,8 @@ public:
         declare_parameter("carryspace.dt");
         declare_parameter("checkpoints");
 
-        std::string free_graph_path = get_parameter("free_graph_path").as_string();
-        std::string carry_graph_path = get_parameter("carry_graph_path").as_string();
+        std::string free_graph_path = ament_index_cpp::get_package_share_directory("uve_plan") + get_parameter("free_graph_path").as_string();
+        std::string carry_graph_path = ament_index_cpp::get_package_share_directory("uve_plan") + get_parameter("carry_graph_path").as_string();
         int max_thread = get_parameter("max_thread").as_int();
         double free_max_v = get_parameter("freespace.max_v").as_double();
         double free_max_w = get_parameter("freespace.max_w").as_double();

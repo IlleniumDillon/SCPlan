@@ -1,5 +1,7 @@
 #include "uve_control.hpp"
 #include "eigen3/Eigen/Eigen"
+#include <chrono>
+using namespace std::chrono_literals;
 UveControl::UveControl()
     : Node("uve_control")
 {
@@ -194,6 +196,7 @@ void UveControl::controlTask()
     Eigen::VectorXd x_ref, y_ref, theta_ref, v_ref, w_ref;
     Eigen::VectorXd state(5);
     Eigen::VectorXd control(2);
+    uint8_t PID_state = 0;
     x_ref.resize(path.trace.size());
     y_ref.resize(path.trace.size());
     theta_ref.resize(path.trace.size());
@@ -214,16 +217,17 @@ void UveControl::controlTask()
         }
     }
     // 打开电磁铁
-    if (path.interaction > -1)
-    {
-        armOutput.arm_arm = arm_arm_on;
-        armOutput.arm_base = arm_base_on;
-        emagOutput.enable = true;
-        pub_arm_->publish(armOutput);
-        pub_emag_->publish(emagOutput);
-    }
+    // if (path.interaction > -1)
+    // {
+    //     armOutput.arm_arm = arm_arm_on;
+    //     armOutput.arm_base = arm_base_on;
+    //     emagOutput.enable = true;
+    //     pub_arm_->publish(armOutput);
+    //     pub_emag_->publish(emagOutput);
+    // }
+    // std::this_thread::sleep_for(1s);
     // 跟踪第一个点
-    mpc_->setTrackReference(x_ref.block(0,0,1,1), y_ref.block(0,0,1,1), theta_ref.block(0,0,1,1), v_ref.block(0,0,1,1), w_ref.block(0,0,1,1));
+    // mpc_->setTrackReference(x_ref.block(0,0,1,1), y_ref.block(0,0,1,1), theta_ref.block(0,0,1,1), v_ref.block(0,0,1,1), w_ref.block(0,0,1,1));
     while (_taskAlive())
     {
         auto time_start = std::chrono::high_resolution_clock::now();
@@ -244,12 +248,86 @@ void UveControl::controlTask()
         {
             dtheta -= 2 * M_PI;
         }
-        if (std::sqrt(dx*dx+dy*dy) < 0.02 && dtheta < 0.17)
+        RCLCPP_INFO(get_logger(), "error: %f,%f,%f", dx,dy,dtheta);
+        if (std::sqrt(dx*dx+dy*dy) < 0.05 && dtheta < 0.17)
         {
+            vwOutput.v = 0;
+            vwOutput.w = 0;
+            pub_kinetics_->publish(vwOutput);
             break;
         }
         // mpc
-        mpc_->update(state, control);
+        // mpc_->update(state, control);
+
+        // PID
+        // turn to target point
+        if (PID_state == 0)
+        {
+            double target_theta = std::atan2(dy, dx);
+            double dtheta_pid = target_theta - state(2);
+            if (dtheta_pid < -M_PI)
+            {
+                dtheta_pid += 2 * M_PI;
+            }
+            if (dtheta_pid > M_PI)
+            {
+                dtheta_pid -= 2 * M_PI;
+            }
+            if (std::abs(dtheta_pid) < 0.17)
+            {
+                control(0) = 0;
+                control(1) = 0;
+                PID_state = 1;
+            }
+            else
+            {
+                control(0) = 0;
+                control(1) = dtheta_pid * 2;
+            }
+        }
+        else if (PID_state == 1)
+        {
+            double distance = std::sqrt(dx*dx+dy*dy);
+            double target_theta = std::atan2(dy, dx);
+            double dtheta_pid = target_theta - state(2);
+            if (dtheta_pid < -M_PI)
+            {
+                dtheta_pid += 2 * M_PI;
+            }
+            if (dtheta_pid > M_PI)
+            {
+                dtheta_pid -= 2 * M_PI;
+            }
+            if (distance < 0.05)
+            {
+                control(0) = 0;
+                control(1) = 0;
+                PID_state = 2;
+            }
+            else 
+            {
+                control(0) = 0.1;
+                control(1) = dtheta_pid * 2;
+            }
+        }
+        else if (PID_state == 2)
+        {
+            if (std::abs(dtheta) < 0.17)
+            {
+                control(0) = 0;
+                control(1) = 0;
+                PID_state = 3;
+            }
+            else
+            {
+                control(0) = 0;
+                control(1) = dtheta * 2;
+            }
+        }
+        else
+        {
+            break;
+        }
         vwOutput.v = control(0);
         vwOutput.w = control(1);
         pub_kinetics_->publish(vwOutput);
@@ -264,6 +342,18 @@ void UveControl::controlTask()
         }
     }
     control_get_pub->publish(std_msgs::msg::Empty());
+    if (path.interaction > -1)
+    {
+        armOutput.arm_arm = arm_arm_on;
+        armOutput.arm_base = arm_base_on;
+        emagOutput.enable = true;
+        pub_arm_->publish(armOutput);
+        pub_emag_->publish(emagOutput);
+        vwOutput.v = 0;
+        vwOutput.w = 0;
+        pub_kinetics_->publish(vwOutput);
+        std::this_thread::sleep_for(1s);
+    }
     // 跟踪路径
     mpc_->setTrackReference(x_ref, y_ref, theta_ref, v_ref, w_ref);
     while (_taskAlive())
@@ -297,7 +387,7 @@ void UveControl::controlTask()
     // 关闭电磁铁
     armOutput.arm_arm = arm_arm_off;
     armOutput.arm_base = arm_base_off;
-    emagOutput.enable = true;
+    emagOutput.enable = false;
     vwOutput.v = 0;
     vwOutput.w = 0;
     pub_arm_->publish(armOutput);
