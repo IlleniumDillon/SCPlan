@@ -317,7 +317,7 @@ public:
                 std::this_thread::sleep_for(10ms);
             }
             RCLCPP_INFO(get_logger(), "abort control");
-            control_abort_pub->publish(std_msgs::msg::Empty());
+            // control_abort_pub->publish(std_msgs::msg::Empty());
         }
         RCLCPP_INFO(get_logger(), "finish all path");
     }

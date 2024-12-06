@@ -40,6 +40,10 @@ private:
         {
             return true;
         }
+        else
+        {
+            RCLCPP_INFO(get_logger(), "Task Abort");
+        }
         return false;
     }
 

@@ -56,6 +56,7 @@ UveControl::UveControl()
 
 UveControl::~UveControl()
 {
+    abortFlag.store(true);
     if (future_.valid())
     {
         future_.wait();
@@ -202,6 +203,7 @@ void UveControl::controlTask()
     theta_ref.resize(path.trace.size());
     v_ref.resize(path.trace.size());
     w_ref.resize(path.trace.size());
+    RCLCPP_INFO(get_logger(), "controlTask: %d", path.trace.size());
     for (int waypoint = 0; waypoint < path.trace.size(); waypoint++)
     {
         x_ref(waypoint) = path.trace[waypoint].x;
@@ -337,6 +339,7 @@ void UveControl::controlTask()
             auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(time_end - time_start);
             if (duration.count() > mpc_->dT * 1e9)
             {
+                RCLCPP_INFO(get_logger(), "CTRL");
                 break;
             }
         }
@@ -375,6 +378,7 @@ void UveControl::controlTask()
             auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(time_end - time_start);
             if (duration.count() > mpc_->dT * 1e9)
             {
+                RCLCPP_INFO(get_logger(), "CTRL");
                 break;
             }
         }
@@ -393,4 +397,8 @@ void UveControl::controlTask()
     pub_arm_->publish(armOutput);
     pub_emag_->publish(emagOutput);
     pub_kinetics_->publish(vwOutput);
+
+    // while (_taskAlive())
+    // {
+    // }
 }
